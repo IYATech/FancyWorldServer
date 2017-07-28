@@ -1,0 +1,24 @@
+{
+  "name": "fancy-world-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IYATech/FancyWorldServer.git"
+  },
+  "author": "fancy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IYATech/FancyWorldServer/issues"
+  },
+  "homepage": "https://github.com/IYATech/FancyWorldServer#readme"
+}
