@@ -5,15 +5,24 @@
 const express = require('express');
 const router = express.Router();
 
+const UserService = require('../models/User');
 
 /* GET users listing. */
 router.post('/login', function (req, res, next) {
 
-  res.json({
-    'code': 0,
-    'message': 'ok',
-    'result': 123
-  })
+  UserService.findUser(12)
+    .then(result=>{
+      res.json({
+        'code': 0,
+        'message': 'ok',
+        'result': result
+      })
+    })
+    .catch(error=>{
+
+    })
+
+
 
 });
 
