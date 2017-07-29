@@ -5,6 +5,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
+const mongoose = require('mongoose');
+const global = require('./common/global');
 
 // parse `application/x-www-form-urlencoded`
 app.use(bodyParser.urlencoded({extended: true}));
@@ -14,7 +16,7 @@ app.use(bodyParser.json());
 
 //routes
 app.use('/user', require('./routes/user'));
-app.use('/event',require('./routes/event'));
+app.use('/event', require('./routes/event'));
 app.use('/message', require('./routes/message'));
 
 // catch 404 and forward to error handler
@@ -38,5 +40,7 @@ app.use(function (err, req, res, next) {
     'message': err.message
   });
 });
+
+mongoose.connect('mongodb://123.56.182.49:27017/test');
 
 module.exports = app;

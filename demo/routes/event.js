@@ -8,8 +8,6 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const Event = require('../models/event');
 
-mongoose.connect('mongodb://123.56.182.49:27017/test');
-
 router.post('/event', function (req, res, next) {
   /* GET users listing. */
 

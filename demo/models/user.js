@@ -2,24 +2,29 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-    phone:String,
-    password:String,
-    nickname:String,
-    realName:String,
-    identity:[String],
-    company:String,
-    job:String,
-    avatar:String,
-    activevalue:Number,
-    fansnum:Number,
-    follownum:Number,
-    birthday:String,
-    gender:String,
-    address:String,
-    lat:Number,
-    lng:Number,
-    introduction:String,
-    kidid:String,
+    phone: {
+        type: String,
+        index: true,
+        unique: true
+    },
+    password: String,
+    nickname: String,
+    realName: String,
+    identity: [String],
+    company: String,
+    job: String,
+    avatar: String,
+    activevalue: Number,
+    fansnum: Number,
+    follownum: Number,
+    birthday: String,
+    gender: String,
+    address: String,
+    lat: Number,
+    lng: Number,
+    introduction: String,
+    kidid: String,
+    createtime: {type: Date, default: Date.now},
 });
 
 module.exports = mongoose.model('user', userSchema);
