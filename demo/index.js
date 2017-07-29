@@ -6,8 +6,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
 
-app.use(bodyParser.json());
-
 // parse `application/x-www-form-urlencoded`
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -16,6 +14,7 @@ app.use(bodyParser.json());
 
 //routes
 app.use('/user', require('./routes/user'));
+app.use('/event',require('./routes/event'));
 app.use('/message', require('./routes/message'));
 
 // catch 404 and forward to error handler
