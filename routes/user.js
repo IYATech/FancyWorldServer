@@ -96,10 +96,10 @@ router.post('/login', function (req, res, next) {
     });
 });
 
-router.post('/userinfo', function (req, res, next) {
+router.post('/userPage', function (req, res, next) {
   const {uid} = req.body;
 
-  User.findOne({_id: uid}, '_id avatar nickname fansnum follownum activevalue')
+  User.findOne({_id: uid}, '_id avatar nickname fansNum followNum activeValue')
     .then(u => {
       if (u)
         res.json({
@@ -109,9 +109,43 @@ router.post('/userinfo', function (req, res, next) {
             _id: u._id,
             nickname: u.nickname,
             avatar: u.avatar || '',
-            fansnum: u.fansnum || 0,
-            follownum: u.follownum || 0,
-            activevalue: u.activevalue || 0
+            fansNum: u.fansNum || 0,
+            followNum: u.followNum || 0,
+            activeValue: u.activeValue || 0
+          }
+        });
+      else {
+        res.json({
+          code: -1,
+          message: '用户不存在',
+        })
+      }
+    })
+    .catch(err => {
+      res.json({
+        code: ErrMsg.DB.code,
+        message: err.message
+      })
+    })
+});
+
+router.post('/userInfo', function (req, res, next) {
+  const {uid} = req.body;
+
+  User.findOne({_id: uid}, '_id birthday gender address company job introduction')
+    .then(u => {
+      if (u)
+        res.json({
+          code: 0,
+          message: 'ok',
+          result: {
+            _id: u._id,
+            birthday:u.birthday,
+            gender:u.gender,
+            address:u.address,
+            company:u.company,
+            job:u.job,
+            introduction:u.introduction,
           }
         });
       else {
