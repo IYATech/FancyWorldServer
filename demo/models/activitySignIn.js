@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const activityThemeSchema = new Schema({
+const activitySignInSchema = new Schema({
     createrId:{type: String, default: ''},
     activityId:{type: String, default: ''},
     title:{type: String, default: ''},
@@ -11,13 +11,10 @@ const activityThemeSchema = new Schema({
     audio:{type: String, default: ''},
     thumbnail:{type: String, default: ''},
     video:{type: String, default: ''},
-    sponsor:[String],
-    undertaker:[String],
-    customEnrollInfo:[String],
-    invisibleUserId:[String],
-    visibleUserId:[String],
-    enrollInfoId:[String],
+    address:{type: String, default: ''},
+    lat: {type: Number, default: 0},
+    lng: {type: String, default: 0},
     createTime: {type: Date, default: Date.now},
 });
 
-module.export = mongoose.module('activityTheme', activityThemeSchema);
+module.export = mongoose.module('activitySingIn', activitySignInSchema);
