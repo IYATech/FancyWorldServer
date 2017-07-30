@@ -4,12 +4,12 @@
 
 global.ErrMsg = {
   PARAMS: {
-    'code': -1001,
-    'message': '参数错误'
+    code: -1001,
+    message: '参数错误'
   },
   DB:{
-    'code':-1002,
-    'message':'数据库异常'
+    code:-1002,
+    message:'数据操作异常'
   }
 };
 

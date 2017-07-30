@@ -18,62 +18,115 @@ router.post('/register', function (req, res, next) {
 
   if (verifycode !== '1234') {
     res.json({
-      'code': -1,
-      'message': '验证码错误'
+      code: -1,
+      message: '验证码错误'
     });
     return;
   }
 
-  u = new User({
-    phone,
-    password,
-    nickname
-  });
+  User.findOne({phone})
+    .then(u => {
+      if (u) {
+        res.json({
+          code: -1,
+          message: '该手机号已注册'
+        });
+      }
+      else {
+        let user = new User({
+          phone,
+          password,
+          nickname
+        });
 
-  u.save(function (err, product) {
-    if (err)
+        user.save()
+          .then(p => {
+            res.json({
+              code: 0,
+              message: 'ok',
+              result: p._id
+            })
+          })
+          .catch(err => {
+            res.json({
+              code: ErrMsg.DB.code,
+              message: err.message
+            });
+          })
+      }
+    })
+    .catch(err => {
       res.json({
-        'code':-1,
-        'message': '注册失败，用户已存在'
-      })
-    else
-      res.json({
-        'code': 0,
-        'message': 'ok',
-        'result': product._id
-      })
-  })
+        code: ErrMsg.DB.code,
+        message: err.message
+      });
+    });
 });
 
 router.post('/login', function (req, res, next) {
   const {phone, password} = req.body;
 
   if (!phone || !password) {
-    res.json(ErrMsg.PARAMS)
+    res.json(ErrMsg.PARAMS);
     return;
   }
 
-  User.findOne({phone, password}, function (err, u) {
-    if (err) {
+  User.findOne({phone, password})
+    .then(u => {
+      if (u) {
+        res.json({
+          code: 0,
+          message: 'ok',
+          result: u
+        })
+      }
+      else {
+        res.json({
+          code: -1,
+          message: '用户名或密码错误'
+        })
+      }
+    })
+    .catch(err => {
       res.json({
-        'code':ErrMsg.DB.code,
-        'message': err.message
+        code: ErrMsg.DB.code,
+        message: err.message
       })
-    }
-    else if (u) {
-      res.json({
-        'code':0,
-        'message':'ok',
-        'result': u
-      })
-    }
-    else {
-      res.json({
-        'code': -1,
-        'message': '用户名或密码错误'
-      })
-    }
-  })
+    });
 });
+
+router.post('/userinfo', function (req, res, next) {
+  const {uid} = req.body;
+
+  User.findOne({_id: uid}, '_id avatar nickname fansnum follownum activevalue')
+    .then(u => {
+      if (u)
+        res.json({
+          code: 0,
+          message: 'ok',
+          result: {
+            _id: u._id,
+            nickname: u.nickname,
+            avatar: u.avatar || '',
+            fansnum: u.fansnum || 0,
+            follownum: u.follownum || 0,
+            activevalue: u.activevalue || 0
+          }
+        });
+      else {
+        res.json({
+          code: -1,
+          message: '用户不存在',
+        })
+      }
+    })
+    .catch(err => {
+      res.json({
+        code: ErrMsg.DB.code,
+        message: err.message
+      })
+    })
+});
+
 
 module.exports = router;
