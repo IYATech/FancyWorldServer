@@ -2,36 +2,14 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const activitySchema = new Schema({
-    createrId:String,
-    title:String,
+    createrId:{type: String, default: ''},
+    title:{type: String, default: ''},
     tag:[String],
-    endTime:String,
-    status:String,
+    endTime:{type: String, default: ''},
+    status:{type: String, default: ''},
     committeeId:[String],
-    viewNum:Number,
-    signUpNum:Number,
-    collectionNum:Number,
+    viewNum:{type: Number, default: 0},
+    signUpNum:{type: Number, default: 0},
+    collectionNum:{type: Number, default: ''},
     createTime: {type: Date, default: Date.now},
 });
-
-module.exports =  mongoose.model('activity', activitySchema);
-
-/*
-var Activity = mongoose.model('activity', activitySchema);
-
-const activitys=[{
-    createrId:'100',
-    title:'学堂故事',
-    tag:['音乐','体育'],
-    endTime:'2017-10-01',
-    status:'进行中',
-
-}];
-
-mongoose.connect('mongodb://123.56.182.49:27017/test');
-
-activitys.map(function (data) {
-    var activity = new Activity(data);
-    activity.save();
-});
-*/
