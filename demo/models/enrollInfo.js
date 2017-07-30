@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const signInInfoSchema = new Schema({
-    signInUserId:{type: String, default: ''},
+const enrollInfoSchema = new Schema({
+    enrollUserId:{type: String, default: ''},
     activityThemeId:{type: String, default: ''},
     kidName:{type: String, default: ''},
     kidGender:{type: String, default: ''},
@@ -14,4 +14,4 @@ const signInInfoSchema = new Schema({
     kidHobby:[String],
 });
 
-module.export = mongoose.module('signInInfo', signInInfoSchema);
+module.export = mongoose.module('enrollInfo', enrollInfoSchema);
