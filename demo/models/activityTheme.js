@@ -16,6 +16,7 @@ const activityThemeSchema = new Schema({
     customEnrollInfo:[String],
     invisibleUserId:[String],
     visibleUserId:[String],
+    signInInfoId:[String],
     createTime: {type: Date, default: Date.now},
 });
 
