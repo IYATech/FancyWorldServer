@@ -14,3 +14,4 @@ const activitySchema = new Schema({
     createTime: {type: Date, default: Date.now},
 });
 
+module.exports = mongoose.model('activity', activitySchema);

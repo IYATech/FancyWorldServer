@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
@@ -7,23 +8,23 @@ const userSchema = new Schema({
         index: true,
         unique: true
     },
-    password: String,
-    nickname: String,
-    realName: String,
+    password: {type: String, default: ''},
+    nickname: {type: String, default: ''},
+    realName: {type: String, default: ''},
     identity: [String],
-    company: String,
-    job: String,
-    avatar: String,
-    activevalue: Number,
-    fansnum: Number,
-    follownum: Number,
-    birthday: String,
-    gender: String,
-    address: String,
-    lat: Number,
-    lng: Number,
-    introduction: String,
-    kidid: String,
+    company: {type: String, default: ''},
+    job: {type: String, default: ''},
+    avatar: {type: String, default: ''},
+    activeValue: {type: Number, default: 0},
+    fansNum: {type: Number, default: 0},
+    followNum: {type: Number, default: 0},
+    birthday: {type: Number, default: 0},
+    gender: {type: String, default: ''},
+    address: {type: String, default: ''},
+    lat: {type: Number, default: 0},
+    lng: {type: Number, default: 0},
+    introduction: {type: String, default: ''},
+    kidid: {type: String, default: ''},
     createtime: {type: Date, default: Date.now},
 });
 
