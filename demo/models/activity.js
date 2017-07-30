@@ -11,6 +11,10 @@ const activitySchema = new Schema({
     viewNum:{type: Number, default: 0},
     signUpNum:{type: Number, default: 0},
     collectionNum:{type: Number, default: ''},
+    segment:[{
+        segmentType:{type: String, default: ''},
+        segmentId:{type: String, default: ''},
+    }],
     createTime: {type: Date, default: Date.now},
 });
 
