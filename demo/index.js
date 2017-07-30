@@ -32,15 +32,15 @@ app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
+  // write the error info
   res.status(err.status || 500);
-  // res.render('error');
   res.json({
     'error': '404',
     'message': err.message
   });
 });
 
+//connect to mongodb
 mongoose.connect('mongodb://123.56.182.49:27017/test');
 
 module.exports = app;

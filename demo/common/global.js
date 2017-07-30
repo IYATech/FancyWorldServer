@@ -2,6 +2,9 @@
  * Created by jialing on 2017/7/29.
  */
 
+/*
+  define error code
+ */
 global.ErrMsg = {
   PARAMS: {
     code: -1001,

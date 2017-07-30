@@ -5,7 +5,6 @@
 const express = require('express');
 const router = express.Router();
 
-/* GET users listing. */
 router.post('/new', function (req, res, next) {
   res.json({
     'code': 0,

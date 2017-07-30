@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+/*
+  activity model
+ */
+
 const activitySchema = new Schema({
     createrId:{type: String, default: ''},
     title:{type: String, default: ''},

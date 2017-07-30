@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 const User = require('../models/user');
 
 router.post('/register', function (req, res, next) {
+
   const {phone, password, nickname, verifycode} = req.body;
 
   if (!phone || !password || !nickname || !verifycode) {
