@@ -13,3 +13,4 @@ const activitySchema = new Schema({
     collectionNum:{type: Number, default: ''},
     createTime: {type: Date, default: Date.now},
 });
+
