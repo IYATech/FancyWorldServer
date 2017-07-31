@@ -8,10 +8,10 @@ const Schema = mongoose.Schema;
 
 const userMsgSchema = new Schema({
   userId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
-  likeMsgId: [String],
-  followMsgId: [String],
-  leaveMsgId: [String],
-  noticeMsgId: [String],
+  unreadLikeMsgNum: {Type: Number, default: 0},
+  unreadFollowMsgNum: {Type: Number, default: 0},
+  unreadLeaveMsgNum: {Type: Number, default: 0},
+  unreadNoticeMsgNum: {Type: Number, default: 0},
   chatMsg: [{
     chatUserId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
     chatContent: {type: String, default: ''},
