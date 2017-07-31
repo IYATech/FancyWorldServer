@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const Schema = mongoose.Schema;
 
 /*
@@ -8,10 +9,10 @@ const Schema = mongoose.Schema;
 const chatMsgSchema = new Schema({
   sendUserId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
   recvUserId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
-  msgType: {type: String, default: ''},
-  msgStatus: {type: String, default: ''},
+  msgType: {type: String, required: true},
   msgResult: {type: String, default: ''},
   msgContent: {type: String, default: ''},
+  msgContentId: {type: String, default: ''},
   msgCreateTime: {type: Date, default: Date.now}
 });
 
