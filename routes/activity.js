@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const Activity = require('../models/activity');
-const ActivityTheme = require('../models/activityTheme');
+const ActivityTheme = require('../models/activity');
 
 router.post('/publishTheme', function (req, res, next) {
   if (!req.user) {

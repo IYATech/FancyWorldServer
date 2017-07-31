@@ -8,7 +8,7 @@ const Schema = mongoose.Schema;
 
 const userMsgSchema = new Schema({
   userId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
-  newlikeMsgNum: {Type: Number, default: 0},
+  newLikeMsgNum: {Type: Number, default: 0},
   newFollowMsgNum: {Type: Number, default: 0},
   newLeaveMsgNum: {Type: Number, default: 0},
   newNoticeMsgNum: {Type: Number, default: 0},
