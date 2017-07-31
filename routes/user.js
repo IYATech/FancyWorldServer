@@ -4,20 +4,19 @@
 
 const express = require('express');
 const router = express.Router();
-
-const mongoose = require('mongoose');
+const uuid = require('uuid');
 const User = require('../models/user');
 
 router.post('/register', function (req, res, next) {
 
-  const {phone, password, nickname, verifycode} = req.body;
+  const {phone, password, nickname, verifyCode} = req.body;
 
-  if (!phone || !password || !nickname || !verifycode) {
+  if (!phone || !password || !nickname || !verifyCode) {
     res.json(ErrMsg.PARAMS);
     return;
   }
 
-  if (verifycode !== '1234') {
+  if (verifyCode !== '1234') {
     res.json({
       code: -1,
       message: '验证码错误'
@@ -25,7 +24,7 @@ router.post('/register', function (req, res, next) {
     return;
   }
 
-  User.findOne({phone})
+  User.findOne({phone}).exec()
     .then(u => {
       if (u) {
         res.json({
@@ -72,9 +71,11 @@ router.post('/login', function (req, res, next) {
     return;
   }
 
-  User.findOne({phone, password})
+  let accessToken = uuid.v4();
+  User.findOneAndUpdate({phone, password}, {accessToken}).exec()
     .then(u => {
       if (u) {
+        u.accessToken = accessToken;
         res.json({
           code: 0,
           message: 'ok',
@@ -96,10 +97,10 @@ router.post('/login', function (req, res, next) {
     });
 });
 
-router.post('/userPage', function (req, res, next) {
+router.post('/homepage', function (req, res, next) {
   const {uid} = req.body;
 
-  User.findOne({_id: uid}, '_id avatar nickname fansNum followNum activeValue')
+  User.findOne({_id: uid}, '_id avatar nickname fansNum followNum activeValue').exec()
     .then(u => {
       if (u)
         res.json({
@@ -132,7 +133,7 @@ router.post('/userPage', function (req, res, next) {
 router.post('/userInfo', function (req, res, next) {
   const {uid} = req.body;
 
-  User.findOne({_id: uid}, '_id birthday gender address company job introduction')
+  User.findOne({_id: uid}, '_id birthday gender address company job introduction').exec()
     .then(u => {
       if (u)
         res.json({
@@ -140,12 +141,12 @@ router.post('/userInfo', function (req, res, next) {
           message: 'ok',
           result: {
             _id: u._id,
-            birthday:u.birthday,
-            gender:u.gender,
-            address:u.address,
-            company:u.company,
-            job:u.job,
-            introduction:u.introduction,
+            birthday: u.birthday,
+            gender: u.gender,
+            address: u.address,
+            company: u.company,
+            job: u.job,
+            introduction: u.introduction,
           }
         });
       else {
@@ -163,5 +164,88 @@ router.post('/userInfo', function (req, res, next) {
     })
 });
 
+router.post('/verifyCode', function (req, res, next) {
+  const {phone} = req.body;
+
+  //todo
+  res.end();
+});
+
+router.post('/kidInfo', function (req, res, next) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {uid} = req.body;
+
+  //todo
+
+  res.end();
+});
+
+router.post('/authentication', function (req, res, next) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  //todo
+
+  res.end();
+});
+
+router.post('/resetPassword', function (req, res, next) {
+  const {phone, password, verifyCode} = req.body;
+
+  if (!phone || !password || !verifyCode) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  if (verifyCode !== '1234') {
+    res.json({
+      code: -1,
+      message: '验证码错误'
+    });
+    return;
+  }
+
+  User.update({phone/*,verifyCode*/}, {password}).exec()
+    .then(() => {
+      res.json({
+        code: 0,
+        message: 'ok',
+        result: true
+      })
+    })
+    .catch(err => {
+      res.json({
+        code: ErrMsg.DB.code,
+        message: err.message
+      })
+    })
+});
+
+router.post('/qnSignature', function (req, res, next) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {type, ext} = res.body;
+
+  if (!type || !ext) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  res.json({
+    code: 0,
+    message: 'ok',
+    result:getQiniuToken(type, ext)
+  })
+
+});
 
 module.exports = router;

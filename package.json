@@ -8,7 +8,9 @@
     "express": "^4.15.3",
     "express-session": "^1.15.4",
     "mongodb": "^2.2.30",
-    "mongoose": "^4.11.4"
+    "mongoose": "^4.11.4",
+    "qiniu": "^7.0.5",
+    "uuid": "^3.1.0"
   },
   "devDependencies": {},
   "scripts": {

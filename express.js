@@ -8,16 +8,24 @@ const app = express();
 const mongoose = require('mongoose');
 const global = require('./common/global');
 
+//connect to mongodb
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://123.56.182.49:27017/test');
+
 // parse `application/x-www-form-urlencoded`
 app.use(bodyParser.urlencoded({extended: true}));
 
 // parse `application/json`
 app.use(bodyParser.json());
 
+//check user token
+app.use(checkToken);
+
 //routes
 app.use('/user', require('./routes/user'));
 app.use('/event', require('./routes/event'));
 app.use('/message', require('./routes/message'));
+app.use('/activity',require('./routes/activity'));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -35,12 +43,9 @@ app.use(function (err, req, res, next) {
   // write the error info
   res.status(err.status || 500);
   res.json({
-    'error': '404',
-    'message': err.message
+    error: err.status,
+    message: err.message
   });
 });
-
-//connect to mongodb
-mongoose.connect('mongodb://123.56.182.49:27017/test');
 
 module.exports = app;

@@ -3,20 +3,20 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 /*
-    userMsgSchema
+    userMsg model
  */
 
 const userMsgSchema = new Schema({
-    userId: {type: String, default: ''},
-    likeMsgId: [String],
-    followMsgId: [String],
-    leaveMsgId: [String],
-    noticeMsgId: [String],
-    chatMsg: [{
-        chatUserId: {type: String, default: ''},
-        chatContent: {type: String, default: ''},
-        chatCreateTime: {type: String, default: ''}
-    }]
+  userId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
+  likeMsgId: [String],
+  followMsgId: [String],
+  leaveMsgId: [String],
+  noticeMsgId: [String],
+  chatMsg: [{
+    chatUserId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
+    chatContent: {type: String, default: ''},
+    chatCreateTime: {type: Date, default: Date.now()}
+  }]
 });
 
-module.export = mongoose.module('userMsg', userMsgSchema);
+module.exports = mongoose.model('userMsg', userMsgSchema);
