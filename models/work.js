@@ -18,7 +18,8 @@ const workSchema = new Schema({
   performer: {type: String, require: true},
   performerGender: {type: String, require: true},
   performerAge: {type: String, require: true},
-  performerAddr: {type: String, require: true},
+  province: {type: String, require: true},
+  city: {type: String, require: true},
   description: {type: String, default: ''},
   images: [{type: String, default: ''}],
   audio: {type: String, default: ''},
@@ -26,7 +27,6 @@ const workSchema = new Schema({
   video: {type: String, default: ''},
   commentNum: {type: Number, default: ''},
   likeNum: {type: Number, default: ''},
-  postNum:{type:Number, default:''},
   createTime: {type: Date, default: Date.now}
 });
 
