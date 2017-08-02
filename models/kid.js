@@ -13,6 +13,7 @@ const Schema = mongoose.Schema;
 const kidSchema = new Schema({
   userId: [{type: Schema.Types.ObjectId, required: true, ref: 'user'}],
   kidName: {type: String, required: true},
+  kidBirthday:{type:String, required:true},
   kidGender: {type: String, default: ''},
   kidHobby: [String],
   kidSchool: {type: String, default: ''},

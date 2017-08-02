@@ -11,12 +11,12 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const activityLessonSchema = new Schema({
-  createrId: {type: Schema.Types.ObjectId, require: true, ref: 'user'},
-  activityId: {type: Schema.Types.ObjectId, require: true, ref: 'activity'},
+  createrId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
+  activityId: {type: Schema.Types.ObjectId, required: true, ref: 'activity'},
   title: {type: String, require: true},
   description: {type: String, default: ''},
-  performer: {type: String, require: true},
-  video: {type: String, require: true},
+  performer: {type: String, required: true},
+  video: {type: String, required: true},
   createTime: {type: Date, default: Date.now},
   postNum: {type: Number, default: 0}
 });
