@@ -7,8 +7,8 @@ const Schema = mongoose.Schema;
  */
 
 const activityNoticeSchema = new Schema({
-  createrId: {type: String, default: ''},
-  activityId: {type: String, default: ''},
+  createrId: {type: Schema.Types.ObjectId, require: true, ref: 'user'},
+  activityId: {type: Schema.Types.ObjectId, require: true, ref: 'activity'},
   title: {type: String, default: ''},
   description: {type: String, default: ''},
   images: [String],
