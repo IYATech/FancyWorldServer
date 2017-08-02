@@ -21,7 +21,6 @@ const activitySchema = new Schema({
   customEnrollInfo: [String],
   invisibleUserId: [{type: Schema.Types.ObjectId, required: true, ref: 'user'}],
   visibleUserId: [{type: Schema.Types.ObjectId, required: true, ref: 'user'}],
-  enrollInfoId: [{type: Schema.Types.ObjectId, required: true, ref: 'enrollInfo'}],
   viewNum: {type: Number, default: 0},
   signUpNum: {type: Number, default: 0},
   collectionNum: {type: Number, default: 0},
