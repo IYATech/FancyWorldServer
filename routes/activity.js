@@ -5,11 +5,21 @@
 const express = require('express');
 const router = express.Router();
 const Activity = require('../models/activity');
-const ActivityTheme = require('../models/activity');
+const UserMsg = require('../models/userMsg');
+const ChatMsg = require('../models/chatMsg');
+const _ = require('lodash');
 
-router.post('/publishTheme', function (req, res, next) {
+router.post('/add', function (req, res, next) {
   if (!req.user) {
     res.json(ErrMsg.Token);
+    return;
+  }
+
+  if (req.user.identity.length === 0) {
+    res.json({
+      code: -1,
+      message: '您没有进行认证，请先认证您的身份'
+    });
     return;
   }
 
@@ -25,9 +35,12 @@ router.post('/publishTheme', function (req, res, next) {
     return;
   }
 
-  let theme = new ActivityTheme({
+  let activity = new Activity({
     createrId: req.user._id,
     title,
+    tag,
+    status: 'save',
+    committeeId: committeeUserId,
     description,
     images,
     audio,
@@ -39,49 +52,44 @@ router.post('/publishTheme', function (req, res, next) {
     invisibleUserId,
     visibleUserId,
     enrollInfoId: [],
-  });
-
-  let activity = new Activity({
-    createrId: req.user._id,
-    title,
-    tag,
+    segment: [],
     endTime,
-    status: 'save',
-    committeeId: committeeUserId,
-    segment: []
   });
 
-  Promise.all([
-    theme.save(),
-    activity.save()
-  ])
+  let result = '';
+  activity.save()
     .then(data => {
-      let t = data[0];
-      let a = data[1];
+      result = data._id;
+      // 给组委会成员发消息
+      return Promise.all(
+        committeeUserId.map((uid) => {
+          let msg = new ChatMsg({
+            sendUserId: req.user._id,
+            recvUserId: uid,
+            msgType: 'committee',
+            msgResult: '',
+            msgContent: title,
+            msgContentId: data._id
+          });
 
-      t.activityId = a._id;
-      a.segment.push({
-        segmentType: 'theme',
-        segmentId: t._id
-      });
-
-      return Promise.all([
-        t.save(),
-        a.save()
-      ])
+          return msg.save();
+        })
+      );
     })
-    .then(data => {
-      //todo 给组委会成员发消息
-
-
+    .then(() => {
+      // 给组委会成员的消息数加1
+      return Promise.all(
+        committeeUserId.map((uid) => {
+          return UserMsg.update({userId: uid}, {$inc: {chatMsgNum: 1}}).exec();
+        })
+      );
+    })
+    .then(() => {
       res.json({
         code: 0,
         message: 'ok',
-        result: {
-          segmentId: data[0]._id,
-          activityId: data[1]._id
-        }
-      })
+        result
+      });
     })
     .catch(err => {
       res.json({
@@ -89,6 +97,62 @@ router.post('/publishTheme', function (req, res, next) {
         message: err.message
       })
     });
+});
+
+router.post('/get', function (req, res, next) {
+  const {activityId} = req.body;
+
+  if (!activityId) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  Activity.findById(activityId)
+    .populate({
+      path:'committeeId',
+      select:'_id nickname avatar identity'
+    })
+    .then(data => {
+        if (!data) {
+          res.json({
+            code: -1,
+            message: '活动不存在'
+          });
+          return;
+        }
+
+        if (req.user) {
+          const uid = req.user._id;
+          //登录用户是 创建者 或 可见用户 或 非不可见用户
+          if (uid === data.createrId || _.includes(data.visibleUserId, uid) || !_.includes(data.invisibleUserId, uid)) {
+            res.json({
+              code: 0,
+              message: 'ok',
+              result: data
+            });
+          } else {
+            res.json({
+              code: -2,
+              message: '无权查看此活动'
+            });
+          }
+        } else {
+          //非登录用户，没有门槛，可以取到数据
+          if (data.visibleUserId.length === 0 && data.invisibleUserId.length === 0) {
+            res.json({
+              code: 0,
+              message: 'ok',
+              result: data
+            });
+          } else {
+            res.json({
+              code: -2,
+              message: '无权查看此活动'
+            });
+          }
+        }
+      }
+    )
 });
 
 module.exports = router;

@@ -8,11 +8,11 @@ const Schema = mongoose.Schema;
 
 const userMsgSchema = new Schema({
   userId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
-  newLikeMsgNum: {Type: Number, default: 0},
-  newFollowMsgNum: {Type: Number, default: 0},
-  newLeaveMsgNum: {Type: Number, default: 0},
-  newNoticeMsgNum: {Type: Number, default: 0},
-  chatMsgNum: {Type: Number, default: 0}
+  newLikeMsgNum: {type: Number, required: true, default: 0},
+  newFollowMsgNum: {type: Number, required: true, default: 0},
+  newLeaveMsgNum: {type: Number, required: true, default: 0},
+  newNoticeMsgNum: {type: Number, required: true, default: 0},
+  chatMsgNum: {type: Number, required: true, default: 0}
 });
 
 module.exports = mongoose.model('userMsg', userMsgSchema);

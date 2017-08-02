@@ -10,7 +10,12 @@ const global = require('./common/global');
 
 //connect to mongodb
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://123.56.182.49:27017/test');
+mongoose.connect('mongodb://123.56.182.49:27017/test', {
+  server: {
+    reconnectTries: Number.MAX_VALUE,
+    socketOptions: {connectTimeoutMS: 1000, socketTimeoutMS: 1000}
+  }
+});
 
 // parse `application/x-www-form-urlencoded`
 app.use(bodyParser.urlencoded({extended: true}));
@@ -25,11 +30,16 @@ app.use(checkToken);
 app.use('/user', require('./routes/user'));
 app.use('/event', require('./routes/event'));
 app.use('/message', require('./routes/message'));
-app.use('/activity',require('./routes/activity'));
+app.use('/activity', require('./routes/activity'));
+app.use('/activityTopic', require('./routes/activityTopic'));
+app.use('/activitySignIn', require('./routes/activitySignIn'));
+app.use('/activityNotice', require('./routes/activityNotice'));
+app.use('/activityUploading', require('./routes/activityUploading'));
+app.use('/activityElect', require('./routes/activityElect'));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  var err = new Error('Not Found');
+  let err = new Error('Not Found');
   err.status = 404;
   next(err);
 });

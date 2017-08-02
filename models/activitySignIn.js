@@ -18,6 +18,7 @@ const activitySignInSchema = new Schema({
   lat: {type: Number, default: 0},
   lng: {type: String, default: 0},
   createTime: {type: Date, default: Date.now},
+  postNum: {type: Number, default: 0}
 });
 
 module.exports = mongoose.model('activitySingIn', activitySignInSchema);

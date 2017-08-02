@@ -21,9 +21,11 @@ const activityElectSchema = new Schema({
   video: {type: String, default: ''},
   score: [{
     workId: {type: String, required: true},
-    name: {type: String, required: true}
+    name: {type: String, required: true},
+    default: []
   }],
   createTime: {type: Date, default: Date.now},
+  postNum: {type: Number, default: 0}
 });
 
-module.exports = mongoose.mudel('activityElect', activityElectSchema);
+module.exports = mongoose.model('activityElect', activityElectSchema);

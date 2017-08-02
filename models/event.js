@@ -12,7 +12,7 @@ const eventSchema = new Schema({
     actor:{type: String, default: ''},
     audio:{type: String, default: ''},
     avatar:[String],
-    identify:[[String]],
+    identity:[[String]],
     nickname:[String],
     uid:[String],
     images:[String],
@@ -33,7 +33,7 @@ const eventSchema = new Schema({
     commentNum:{type: Number, default: 0},
     type:{type: String, default: ''},
     thisAvatar:{type: String, default: ''},
-    thisIdentify:[String],
+    thisIdentity:[String],
     thisNickname:{type: String, default: ''},
     thisUid:{type: String, default: ''},
 });

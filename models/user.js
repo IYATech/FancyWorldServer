@@ -16,7 +16,7 @@ const userSchema = new Schema({
   password: {type: String, required: true},
   nickname: {type: String, required: true},
   realName: {type: String, default: ''},
-  identity: [String],
+  identity: [{type: String, default: []}],
   company: {type: String, default: ''},
   job: {type: String, default: ''},
   avatar: {type: String, default: ''},
@@ -29,7 +29,7 @@ const userSchema = new Schema({
   lat: {type: Number, default: 0},
   lng: {type: Number, default: 0},
   introduction: {type: String, default: ''},
-  kidId: [{type: Schema.Types.ObjectId}],
+  kidId: [{type: Schema.Types.ObjectId, default: []}],
   createTime: {type: Date, default: Date.now},
   accessToken: String
 });

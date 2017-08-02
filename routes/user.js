@@ -6,6 +6,9 @@ const express = require('express');
 const router = express.Router();
 const uuid = require('uuid');
 const User = require('../models/user');
+const UserMsg = require('../models/userMsg');
+const ChatMsg = require('../models/chatMsg');
+const Kid = require('../models/kid');
 
 router.post('/register', function (req, res, next) {
 
@@ -36,7 +39,8 @@ router.post('/register', function (req, res, next) {
         let user = new User({
           phone,
           password,
-          nickname
+          nickname,
+          identity: []
         });
 
         user.save()
@@ -45,7 +49,15 @@ router.post('/register', function (req, res, next) {
               code: 0,
               message: 'ok',
               result: p._id
-            })
+            });
+
+            let umsg = new UserMsg({
+              userId: p._id
+            });
+            return umsg.save();
+          })
+          .then(() => {
+            res.end();
           })
           .catch(err => {
             res.json({
@@ -75,11 +87,16 @@ router.post('/login', function (req, res, next) {
   User.findOneAndUpdate({phone, password}, {accessToken}).exec()
     .then(u => {
       if (u) {
-        u.accessToken = accessToken;
         res.json({
           code: 0,
           message: 'ok',
-          result: u
+          result: {
+            _id: u._id,
+            nickname: u.nickname,
+            avatar: u.avatar,
+            identity: u.identity,
+            accessToken
+          }
         })
       }
       else {
@@ -167,8 +184,16 @@ router.post('/userInfo', function (req, res, next) {
 router.post('/verifyCode', function (req, res, next) {
   const {phone} = req.body;
 
-  //todo
-  res.end();
+  //随机一个四位数
+  let code = Math.round(Math.random() * 10000);
+
+  //todo rquest send message
+
+  res.json({
+    code: 0,
+    message: 'ok',
+    result: true
+  })
 });
 
 router.post('/kidInfo', function (req, res, next) {
@@ -177,11 +202,20 @@ router.post('/kidInfo', function (req, res, next) {
     return;
   }
 
-  const {uid} = req.body;
-
-  //todo
-
-  res.end();
+  Kid.find({userId: {$elemMatch: {$eq: req.user._id}}}).exec()
+    .then(kid => {
+      res.json({
+        code: 0,
+        message: 'ok',
+        result: kid
+      });
+    })
+    .catch(err => {
+      res.json({
+        code: ErrMsg.DB.code,
+        message: err.message
+      });
+    });
 });
 
 router.post('/authentication', function (req, res, next) {
@@ -190,9 +224,71 @@ router.post('/authentication', function (req, res, next) {
     return;
   }
 
-  //todo
+  const {realName, company, job, identity, refereeName, refereePhone} = req.body;
 
-  res.end();
+  if (!realName || !identity || !refereeName || !refereePhone) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  //获取认证身份的权值
+  const myWeight = IdentityWeight[identity];
+  if (!myWeight) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  User.findOne({phone: refereePhone, realName: refereeName}).exec()
+    .then(u => {
+      if (u) {
+        //获取推荐人多个认证身份中的最大权值
+        let refWeight = 0;
+        for (let i = 0, len = u.identity.length; i < len; i++) {
+          const value = u.identity[i];
+          if (IdentityWeight[value] && IdentityWeight[value] > refWeight)
+            refWeight = IdentityWeight[value];
+        }
+        if (refWeight < myWeight) {
+          res.json({
+            code: -1,
+            message: '该推荐人的身份权限不够'
+          })
+        }
+        else {
+          //允许认证，发送认证消息给推荐人
+          let msg = new ChatMsg({
+            sendUserId: req.user._id,
+            recvUserId: u._id,
+            msgType: 'authentication',
+            msgResult: '',
+            msgContent: identity,
+          });
+
+          msg.save()
+            .then(() => {
+              return UserMsg.update({userId: u._id}, {$inc: {chatMsgNum: 1}}).exec();
+            })
+            .then(() => {
+              res.json({
+                code: 0,
+                message: 'ok',
+                result: true
+              })
+            })
+            .catch(err => {
+              res.json({
+                code: -1,
+                message: err.message
+              })
+            })
+        }
+      } else {
+        res.json({
+          code: -1,
+          message: '推荐人不存在'
+        })
+      }
+    })
 });
 
 router.post('/resetPassword', function (req, res, next) {
@@ -243,7 +339,7 @@ router.post('/qnSignature', function (req, res, next) {
   res.json({
     code: 0,
     message: 'ok',
-    result:getQiniuToken(type, ext)
+    result: getQiniuToken(type, ext)
   })
 
 });

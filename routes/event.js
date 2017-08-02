@@ -14,7 +14,7 @@ router.post('/event', function (req, res, next) {
   Event.findOne({})
     .then(events => {
       if (events) {
-        const identifys = events.identify;
+        const identitys = events.identity;
         const nicknames = events.nickname;
         const uids = events.uid;
         const avatars = events.avatar;
@@ -22,7 +22,7 @@ router.post('/event', function (req, res, next) {
         let committeeUsers = uids.map(function (id, i) {
           return {
             id: id,
-            identify: identifys[i].slice(),
+            identity: identitys[i].slice(),
             avatar: avatars[i],
             nickname: nicknames[i]
           }
@@ -38,7 +38,7 @@ router.post('/event', function (req, res, next) {
             user: {
               id: events.thisUid,
               nickname: events.thisNickname,
-              identify: events.thisIdentify.slice(),
+              identity: events.thisIdentity.slice(),
               avatar: events.thisAvatar
             },
             content: {
@@ -60,7 +60,7 @@ router.post('/event', function (req, res, next) {
             user: {
               id: events.thisUid,
               nickname: events.thisNickname,
-              identify: events.thisIdentify.slice(),
+              identity: events.thisIdentity.slice(),
               avatar: events.thisAvatar
             },
             content: {
@@ -84,7 +84,7 @@ router.post('/event', function (req, res, next) {
             user: {
               id: events.thisUid,
               nickname: events.thisNickname,
-              identify: events.thisIdentify.slice(),
+              identity: events.thisIdentity.slice(),
               avatar: events.thisAvatar
             },
             content: {

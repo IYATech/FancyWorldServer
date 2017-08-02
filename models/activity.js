@@ -31,6 +31,7 @@ const activitySchema = new Schema({
   }],
   createTime: {type: Date, default: Date.now},
   endTime: {type: Date},
+  postNum: {type: Number, default: 0}
 });
 
 module.exports = mongoose.model('activity', activitySchema);

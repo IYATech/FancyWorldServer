@@ -15,7 +15,8 @@ const activityNoticeSchema = new Schema({
   audio: {type: String, default: ''},
   thumbnail: {type: String, default: ''},
   video: {type: String, default: ''},
-  createTime: {type: Date, default: Date.now}
+  createTime: {type: Date, default: Date.now},
+  postNum: {type: Number, default: 0}
 });
 
 module.exports = mongoose.model('activityNotice', activityNoticeSchema);

@@ -15,6 +15,7 @@ const activityTopicSchema = new Schema({
   thumbnail: {type: String, default: ''},
   video: {type: String, default: ''},
   createTime: {type: Date, default: Date.now},
+  postNum: {type: Number, default: 0}
 });
 
 module.exports = mongoose.model('activityTopic', activityTopicSchema);
