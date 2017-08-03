@@ -23,7 +23,6 @@ const workSchema = new Schema({
   description: {type: String, default: ''},
   images: [{type: String, default: ''}],
   audio: {type: String, default: ''},
-  thumbnail: {type: String, default: ''},
   video: {type: String, default: ''},
   commentNum: {type: Number, default: ''},
   likeNum: {type: Number, default: ''},

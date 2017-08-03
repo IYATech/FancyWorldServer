@@ -5,12 +5,13 @@
 const express = require('express');
 const router = express.Router();
 const uuid = require('uuid');
+const userService = require('../service/user');
 const User = require('../models/user');
 const UserMsg = require('../models/userMsg');
 const ChatMsg = require('../models/chatMsg');
 const Kid = require('../models/kid');
 
-router.post('/register', function (req, res, next) {
+router.post('/register', function (req, res) {
 
   const {phone, password, nickname, verifyCode} = req.body;
 
@@ -75,7 +76,7 @@ router.post('/register', function (req, res, next) {
     });
 });
 
-router.post('/login', function (req, res, next) {
+router.post('/login', function (req, res) {
   const {phone, password} = req.body;
 
   if (!phone || !password) {
@@ -114,23 +115,18 @@ router.post('/login', function (req, res, next) {
     });
 });
 
-router.post('/homepage', function (req, res, next) {
+router.post('/homepage', function (req, res) {
   const {uid} = req.body;
 
-  User.findOne({_id: uid}, '_id avatar nickname fansNum followNum activeValue').exec()
+  User.findOne({_id: uid})
+    .select('_id avatar nickname fansNum followNum followNum')
+    .exec()
     .then(u => {
       if (u)
         res.json({
           code: 0,
           message: 'ok',
-          result: {
-            _id: u._id,
-            nickname: u.nickname,
-            avatar: u.avatar || '',
-            fansNum: u.fansNum || 0,
-            followNum: u.followNum || 0,
-            activeValue: u.activeValue || 0
-          }
+          result: u
         });
       else {
         res.json({
@@ -147,24 +143,18 @@ router.post('/homepage', function (req, res, next) {
     })
 });
 
-router.post('/userInfo', function (req, res, next) {
+router.post('/userInfo', function (req, res) {
   const {uid} = req.body;
 
-  User.findOne({_id: uid}, '_id birthday gender address company job introduction').exec()
+  User.findOne({_id: uid})
+    .select('_id birthday gender address company job introduction')
+    .exec()
     .then(u => {
       if (u)
         res.json({
           code: 0,
           message: 'ok',
-          result: {
-            _id: u._id,
-            birthday: u.birthday,
-            gender: u.gender,
-            address: u.address,
-            company: u.company,
-            job: u.job,
-            introduction: u.introduction,
-          }
+          result: u
         });
       else {
         res.json({
@@ -181,13 +171,13 @@ router.post('/userInfo', function (req, res, next) {
     })
 });
 
-router.post('/verifyCode', function (req, res, next) {
-  const {phone} = req.body;
+router.post('/verifyCode', function (req, res) {
+  // const {phone} = req.body;
 
   //随机一个四位数
-  let code = Math.round(Math.random() * 10000);
+  // let code = Math.round(Math.random() * 10000);
 
-  //todo rquest send message
+  //todo request send message
 
   res.json({
     code: 0,
@@ -196,13 +186,15 @@ router.post('/verifyCode', function (req, res, next) {
   })
 });
 
-router.post('/kidInfo', function (req, res, next) {
+router.post('/kidInfo', function (req, res) {
   if (!req.user) {
     res.json(ErrMsg.Token);
     return;
   }
 
-  Kid.find({userId: {$elemMatch: {$eq: req.user._id}}}).exec()
+  Kid.find({userId: {$elemMatch: {$eq: req.user._id}}})
+    .select('kidName kidGender kidBirthday kidHobby kidSchool kidClass kidTeacherName kidCounselor introduction')
+    .exec()
     .then(kid => {
       res.json({
         code: 0,
@@ -218,7 +210,7 @@ router.post('/kidInfo', function (req, res, next) {
     });
 });
 
-router.post('/authentication', function (req, res, next) {
+router.post('/authentication', function (req, res) {
   if (!req.user) {
     res.json(ErrMsg.Token);
     return;
@@ -269,6 +261,9 @@ router.post('/authentication', function (req, res, next) {
               return UserMsg.update({userId: u._id}, {$inc: {chatMsgNum: 1}}).exec();
             })
             .then(() => {
+              return User.update({_id: req.user._id}, {realName, company, job}).exec()
+            })
+            .then(() => {
               res.json({
                 code: 0,
                 message: 'ok',
@@ -291,7 +286,7 @@ router.post('/authentication', function (req, res, next) {
     })
 });
 
-router.post('/resetPassword', function (req, res, next) {
+router.post('/resetPassword', function (req, res) {
   const {phone, password, verifyCode} = req.body;
 
   if (!phone || !password || !verifyCode) {
@@ -323,25 +318,28 @@ router.post('/resetPassword', function (req, res, next) {
     })
 });
 
-router.post('/qnSignature', function (req, res, next) {
+
+router.post('/qnSignature', function (req, res) {
   if (!req.user) {
     res.json(ErrMsg.Token);
     return;
   }
 
-  const {type, ext} = res.body;
+  const {bucket, ext} = req.body;
 
-  if (!type || !ext) {
+  if (!bucket || !ext) {
     res.json(ErrMsg.PARAMS);
     return;
   }
 
+  let result= userService.getQiniuToken(bucket, ext);
   res.json({
     code: 0,
     message: 'ok',
-    result: getQiniuToken(type, ext)
+    result
   })
 
 });
+
 
 module.exports = router;

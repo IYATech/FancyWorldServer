@@ -1,13 +1,12 @@
 /**
- * Created by jialing on 2017/8/1.
+ * Created by jialing on 2017/8/3.
  */
 
 const express = require('express');
 const router = express.Router();
-const config = require('../common/config');
 const activityService = require('../service/activity');
 const Activity = require('../models/activity');
-const ActivitySignIn = require('../models/activitySignIn');
+const ActivityLesson = require('../models/activityLesson');
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -15,12 +14,9 @@ router.post('/add', function (req, res) {
     return;
   }
 
-  const {
-    activityId, title, description, images, video,
-    audio, lat, lng, address
-  } = req.body;
+  const {activityId, title, description, performer, video} = req.body;
 
-  if (!activityId || !title || !description || !address || !lat || !lng) {
+  if (!activityId || !title || !description || !performer || !video) {
     res.json(ErrMsg.PARAMS);
     return;
   }
@@ -34,24 +30,20 @@ router.post('/add', function (req, res) {
         });
       }
       else {
-        let signIn = new ActivitySignIn({
+        let lesson = new ActivityLesson({
           createrId: req.user._id,
           activityId,
           title,
           description,
-          images,
-          audio,
+          performer,
           video,
-          address,
-          lat,
-          lng,
         });
         let segmentId;
-        signIn.save()
+        lesson.save()
           .then(p => {
             data.segment.push({
               segmentId: p._id,
-              segmentType: 'signIn'
+              segmentType: 'lesson'
             });
             segmentId = p._id;
             return data.save();
@@ -79,7 +71,7 @@ router.post('/add', function (req, res) {
         code: ErrMsg.DB.code,
         message: err.message
       })
-    })
+    });
 });
 
 router.post('/get', function (req, res) {
@@ -100,14 +92,10 @@ router.post('/get', function (req, res) {
         return;
       }
 
-      ActivitySignIn.findById(segmentId)
-        .select('_id createrId activityId title description images audio video createTime postNum lat lng address')
+      ActivityTopic.findById(segmentId)
+        .select('_id createrId activityId title description performer video createTime postNum')
         .exec()
         .then(data => {
-          if(data){
-            //todo 二维码内容生成地址
-            data._doc.qrcode = config.QRCode.url + 'fancy world';
-          }
           res.json({
             code: 0,
             message: 'ok',

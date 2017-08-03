@@ -24,7 +24,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 //check user token
-app.use(checkToken);
+app.use(require('./service/user').checkToken);
 
 //routes
 app.use('/user', require('./routes/user'));
@@ -36,6 +36,7 @@ app.use('/activitySignIn', require('./routes/activitySignIn'));
 app.use('/activityNotice', require('./routes/activityNotice'));
 app.use('/activityUploading', require('./routes/activityUploading'));
 app.use('/activityElect', require('./routes/activityElect'));
+app.use('/activityLesson', require('./routes/activityLesson'));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -45,7 +46,7 @@ app.use(function (req, res, next) {
 });
 
 // error handler
-app.use(function (err, req, res, next) {
+app.use(function (err, req, res) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

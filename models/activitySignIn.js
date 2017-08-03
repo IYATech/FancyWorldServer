@@ -12,7 +12,6 @@ const activitySignInSchema = new Schema({
   description: {type: String, default: ''},
   images: [String],
   audio: {type: String, default: ''},
-  thumbnail: {type: String, default: ''},
   video: {type: String, default: ''},
   address: {type: String, default: ''},
   lat: {type: Number, default: 0},

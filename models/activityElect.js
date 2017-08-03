@@ -17,7 +17,6 @@ const activityElectSchema = new Schema({
   description: {type: String, default: ''},
   images: [String],
   audio: {type: String, default: ''},
-  thumbnail: {type: String, default: ''},
   video: {type: String, default: ''},
   score: [{
     workId: {type: String, required: true},
