@@ -5,7 +5,6 @@
 const express = require('express');
 const router = express.Router();
 const config = require('../common/config');
-const activityService = require('../service/activity');
 const Activity = require('../models/activity');
 const ActivitySignIn = require('../models/activitySignIn');
 
@@ -90,36 +89,23 @@ router.post('/get', function (req, res) {
     return;
   }
 
-  activityService.hasPermission(activityId, req.user && req.user._id)
-    .then(result => {
-      if (!result) {
+  ActivitySignIn.findOne({activityId, segmentId})
+    .select('_id createrId activityId title description images audio video createTime postNum lat lng address')
+    .exec()
+    .then(data => {
+      if (data) {
+        data._doc.qrcode = config.QRCode.url + `activityId%3D${activityId}%26segmentId%3D${segmentId}`;
+        res.json({
+          code: 0,
+          message: 'ok',
+          result: data
+        });
+      } else {
         res.json({
           code: -1,
-          message: '活动不存在或无权查看'
-        });
-        return;
+          message: '未找到活动'
+        })
       }
-
-      ActivitySignIn.findById(segmentId)
-        .select('_id createrId activityId title description images audio video createTime postNum lat lng address')
-        .exec()
-        .then(data => {
-          if(data){
-            //todo 二维码内容生成地址
-            data._doc.qrcode = config.QRCode.url + 'fancy world';
-          }
-          res.json({
-            code: 0,
-            message: 'ok',
-            result: data
-          });
-        })
-        .catch(err => {
-          res.json({
-            code: ErrMsg.DB.code,
-            message: err.message
-          });
-        })
     })
     .catch(err => {
       res.json({

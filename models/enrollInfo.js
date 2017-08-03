@@ -16,6 +16,7 @@ const enrollInfoSchema = new Schema({
   kidClass: {type: String, default: ''},
   kidTeacher: [String],
   kidHobby: [String],
+  createTime: {type: Date, default: Date.now},
 });
 
 module.exports = mongoose.model('enrollInfo', enrollInfoSchema);

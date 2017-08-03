@@ -4,7 +4,6 @@
 
 const express = require('express');
 const router = express.Router();
-const activityService = require('../service/activity');
 const Activity = require('../models/activity');
 const ActivityLesson = require('../models/activityLesson');
 
@@ -82,32 +81,22 @@ router.post('/get', function (req, res) {
     return;
   }
 
-  activityService.hasPermission(activityId, req.user && req.user._id)
-    .then(result => {
-      if (!result) {
+  ActivityLesson.findOne({activityId, segmentId})
+    .select('_id createrId activityId title description performer video createTime postNum')
+    .exec()
+    .then(data => {
+      if (data) {
+        res.json({
+          code: 0,
+          message: 'ok',
+          result: data
+        })
+      } else {
         res.json({
           code: -1,
-          message: '活动不存在或无权查看'
-        });
-        return;
+          message: '未找到活动'
+        })
       }
-
-      ActivityTopic.findById(segmentId)
-        .select('_id createrId activityId title description performer video createTime postNum')
-        .exec()
-        .then(data => {
-          res.json({
-            code: 0,
-            message: 'ok',
-            result: data
-          });
-        })
-        .catch(err => {
-          res.json({
-            code: ErrMsg.DB.code,
-            message: err.message
-          });
-        })
     })
     .catch(err => {
       res.json({

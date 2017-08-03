@@ -31,7 +31,8 @@ exports.hasPermission = function (activityId, userId) {
   }
 
   return new Promise(function (resolve, reject) {
-    Activity.findOne(conditions, '_id').exec()
+    Activity.findOne(conditions, '_id')
+      .exec()
       .then(data => {
         resolve(!!data);
       })
@@ -39,4 +40,17 @@ exports.hasPermission = function (activityId, userId) {
         reject(err);
       });
   });
+};
+
+exports.isActivityCreater = function (activityId, userId) {
+  return new Promise(function (resolve, reject) {
+    Activity.findOne({_id: activityId, createrId: userId}, '_id')
+      .exec()
+      .then(data => {
+        resolve(!!data)
+      })
+      .catch(err => {
+        reject(err)
+      })
+  })
 };

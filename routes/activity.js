@@ -4,6 +4,7 @@
 
 const express = require('express');
 const router = express.Router();
+const activityService = require('../service/activity');
 const Activity = require('../models/activity');
 const UserMsg = require('../models/userMsg');
 const ChatMsg = require('../models/chatMsg');
@@ -109,29 +110,8 @@ router.post('/get', function (req, res) {
     return;
   }
 
-  let conditions;
-  if (req.user) {
-    //登录用户
-    conditions = {
-      _id: activityId,
-      $or: [
-        {createrId: {$eq: req.user._id}}, //创建者
-        {committee: {$elemMatch: {userId: req.user._id}}}, //组委会成员
-        {$and: [{visibleUserId: {$size: 0}}, {invisibleUserId: {$size: 0}}]}, //没有设置门槛
-        {$and: [{visibleUserId: {$not: {$size: 0}}}, {visibleUserId: {$elemMatch: {$eq: req.user._id}}}]}, //设置了可见组，且用户在组内
-        {$and: [{invisibleUserId: {$not: {$size: 0}}}, {invisibleUserId: {$not: {$elemMatch: {$eq: req.user._id}}}}]}  //设置了不可见组，用户不在组内
-      ]
-    }
-  } else {
-    //非登录用户
-    conditions = {
-      _id: activityId,
-      $and: [{visibleUserId: {$size: 0}}, {invisibleUserId: {$size: 0}}], //没有设置门槛
-    }
-  }
-
   Promise.all([
-    Activity.findOne(conditions)
+    Activity.findById(activityId)
       .select('_id title tag status committee description images audio video sponsor undertaker viewNum signUpNum collectionNum segment createTime endTime postNum')
       .populate([
         {path: 'committee.userId', select: '_id nickname avatar identity'},
@@ -139,12 +119,11 @@ router.post('/get', function (req, res) {
       ]),
     EnrollInfo.count({activityId}).exec()
   ])
-
     .then(data => {
         if (!data[0]) {
           res.json({
             code: -1,
-            message: '活动不存在或无权查看'
+            message: '未找到活动'
           });
           return;
         }
@@ -164,16 +143,16 @@ router.post('/get', function (req, res) {
     })
 });
 
-router.post('/myActivities', function (req, res) {
+router.post('/myActivities', function (req, res, next) {
   if (!req.user) {
     res.json(Error.Token);
     return;
   }
 
-  let {page, pageSize} = req.body;
+  let page, pageSize;
   try {
-    page = Number(page);
-    pageSize = Number(pageSize);
+    page = Number(req.body.page);
+    pageSize = Number(req.body.pageSize);
   }
   catch (err) {
     res.json(ErrMsg.PARAMS);
@@ -183,8 +162,8 @@ router.post('/myActivities', function (req, res) {
     Activity.find({createrId: req.user._id, status: {$ne: 'end'}})
       .select('_id title createTime endTime status')
       .sort({createTime: 'desc'})
-      .limit(Number(pageSize))
-      .skip(Number(page))
+      .limit(pageSize)
+      .skip(page)
       .exec(),
     Activity.count({createrId: req.user._id, status: {$ne: 'end'}}).exec()
   ])
@@ -193,10 +172,10 @@ router.post('/myActivities', function (req, res) {
         code: 0,
         message: 'ok',
         result: {
-          data: data[0],
           page,
           pageSize: data[0].length,
-          total: data[1]
+          total: data[1],
+          data: data[0]
         }
       })
     })
@@ -206,8 +185,69 @@ router.post('/myActivities', function (req, res) {
         message: err.message
       });
     });
+});
 
+router.post('/enrollUser', function (req, res) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
 
+  const {activityId} = req.body;
+  let page, pageSize;
+  try {
+    page = Number(req.body.page);
+    pageSize = Number(req.body.pageSize);
+  }
+  catch (err) {
+    res.json(ErrMsg.PARAMS);
+  }
+
+  activityService.isActivityCreater(activityId, req.user._id)
+    .then(result => {
+      if (!result) {
+        res.json({
+          code: -1,
+          message: '没有权限查看'
+        });
+        return;
+      }
+      Promise.all([
+        EnrollInfo.find({activityId})
+          .select('_id enrollUserId activityId kidName kidGender kidBirthday kidSchool kidClass kidTeacher kidHobby createTime')
+          .sort({createTime: 'desc'})
+          .limit(pageSize)
+          .skip(page)
+          .populate([
+            {path: 'enrollUserId', select: '_id nickname avatar identity'}
+          ]),
+        EnrollInfo.count({activityId}).exec()
+      ])
+        .then(data => {
+          res.json({
+            code: 0,
+            message: 'ok',
+            result: {
+              page,
+              pageSize: data[0].length,
+              total: data[1],
+              data: data[0]
+            }
+          })
+        })
+        .catch(err => {
+          res.json({
+            code: ErrMsg.DB.code,
+            message: err.message
+          })
+        })
+    })
+    .catch(err => {
+      res.json({
+        code: ErrMsg.DB.code,
+        message: err.message
+      });
+    })
 });
 
 
