@@ -82,7 +82,7 @@ router.post('/get', function (req, res) {
     return;
   }
 
-  ActivityTopic.findOne({activityId, segmentId})
+  ActivityTopic.findOne({activityId, _id: segmentId})
     .select('_id createrId activityId title description images audio video createTime postNum')
     .exec()
     .then(data => {

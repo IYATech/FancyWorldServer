@@ -36,7 +36,7 @@ app.use('/activitySignIn', require('./routes/activitySignIn'));
 app.use('/activityNotice', require('./routes/activityNotice'));
 app.use('/activityUploading', require('./routes/activityUploading'));
 app.use('/activityElect', require('./routes/activityElect'));
-app.use('/activityLesson', require('./routes/activityLesson'));
+app.use('/activityCourse', require('./routes/activityCourse'));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

@@ -112,7 +112,7 @@ router.post('/get', function (req, res) {
 
   Promise.all([
     Activity.findById(activityId)
-      .select('_id title tag status committee description images audio video sponsor undertaker viewNum signUpNum collectionNum segment createTime endTime postNum')
+      .select('_id createrId segment title tag status committee description images audio video sponsor undertaker viewNum signUpNum collectionNum segment createTime endTime postNum')
       .populate([
         {path: 'committee.userId', select: '_id nickname avatar identity'},
         {path: 'createrId', select: '_id nickname avatar identity'}
@@ -143,9 +143,9 @@ router.post('/get', function (req, res) {
     })
 });
 
-router.post('/myActivities', function (req, res, next) {
+router.post('/myActivities', function (req, res) {
   if (!req.user) {
-    res.json(Error.Token);
+    res.json(ErrMsg.Token);
     return;
   }
 
@@ -156,14 +156,15 @@ router.post('/myActivities', function (req, res, next) {
   }
   catch (err) {
     res.json(ErrMsg.PARAMS);
+    return;
   }
 
   Promise.all([
     Activity.find({createrId: req.user._id, status: {$ne: 'end'}})
-      .select('_id title createTime endTime status')
+      .select('_id title segment createTime endTime status')
       .sort({createTime: 'desc'})
       .limit(pageSize)
-      .skip(page)
+      .skip(pageSize * page)
       .exec(),
     Activity.count({createrId: req.user._id, status: {$ne: 'end'}}).exec()
   ])
@@ -175,7 +176,7 @@ router.post('/myActivities', function (req, res, next) {
           page,
           pageSize: data[0].length,
           total: data[1],
-          data: data[0]
+          data: data[0],
         }
       })
     })
@@ -201,6 +202,7 @@ router.post('/enrollUser', function (req, res) {
   }
   catch (err) {
     res.json(ErrMsg.PARAMS);
+    return;
   }
 
   activityService.isActivityCreater(activityId, req.user._id)
@@ -217,7 +219,7 @@ router.post('/enrollUser', function (req, res) {
           .select('_id enrollUserId activityId kidName kidGender kidBirthday kidSchool kidClass kidTeacher kidHobby createTime')
           .sort({createTime: 'desc'})
           .limit(pageSize)
-          .skip(page)
+          .skip(page * pageSize)
           .populate([
             {path: 'enrollUserId', select: '_id nickname avatar identity'}
           ]),

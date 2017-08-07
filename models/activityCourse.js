@@ -10,7 +10,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const activityLessonSchema = new Schema({
+const activityCourseSchema = new Schema({
   createrId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
   activityId: {type: Schema.Types.ObjectId, required: true, ref: 'activity'},
   title: {type: String, require: true},
@@ -21,4 +21,4 @@ const activityLessonSchema = new Schema({
   postNum: {type: Number, default: 0}
 });
 
-module.exports = mongoose.model('activityLesson', activityLessonSchema);
+module.exports = mongoose.model('activityCourse', activityCourseSchema);

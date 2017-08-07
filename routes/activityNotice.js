@@ -82,7 +82,7 @@ router.post('/get', function (req, res) {
     return;
   }
 
-  ActivityNotice.findOne({activityId, segmentId})
+  ActivityNotice.findOne({activityId, _id: segmentId})
     .select('_id createrId activityId title description images audio video createTime postNum')
     .exec()
     .then(data => {

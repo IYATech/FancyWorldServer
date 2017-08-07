@@ -19,7 +19,7 @@ const activityElectSchema = new Schema({
   audio: {type: String, default: ''},
   video: {type: String, default: ''},
   score: [{
-    workId: {type: String, required: true},
+    workId: {type: String, required: true, ref: 'work'},
     name: {type: String, required: true},
     default: []
   }],

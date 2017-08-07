@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const Activity = require('../models/activity');
-const ActivityLesson = require('../models/activityLesson');
+const ActivityCourse = require('../models/activityCourse');
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -29,7 +29,7 @@ router.post('/add', function (req, res) {
         });
       }
       else {
-        let lesson = new ActivityLesson({
+        let lesson = new ActivityCourse({
           createrId: req.user._id,
           activityId,
           title,
@@ -81,7 +81,7 @@ router.post('/get', function (req, res) {
     return;
   }
 
-  ActivityLesson.findOne({activityId, segmentId})
+  ActivityCourse.findOne({activityId, _id: segmentId})
     .select('_id createrId activityId title description performer video createTime postNum')
     .exec()
     .then(data => {
