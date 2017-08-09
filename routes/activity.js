@@ -9,6 +9,7 @@ const Activity = require('../models/activity');
 const UserMsg = require('../models/userMsg');
 const ChatMsg = require('../models/chatMsg');
 const EnrollInfo = require('../models/enrollInfo');
+const Kid = require('../models/kid');
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -151,8 +152,8 @@ router.post('/myActivities', function (req, res) {
 
   let page, pageSize;
   try {
-    page = Number(req.body.page);
-    pageSize = Number(req.body.pageSize);
+    page = Number(req.body.page) || 0;
+    pageSize = Number(req.body.pageSize) || 10;
   }
   catch (err) {
     res.json(ErrMsg.PARAMS);
@@ -188,6 +189,86 @@ router.post('/myActivities', function (req, res) {
     });
 });
 
+router.post('/enroll', function (req, res) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {activityId, kidName, kidGender, kidBirthday, kidSchool, kidClass, kidTeacher, kidHobby, customEnrollInfo} = req.body;
+
+  if (!activityId || !kidName || !kidGender || !kidBirthday || !kidSchool || !kidClass || !kidTeacher || !kidHobby) {
+    res.json(ErrMsg.PARAMS)
+    return;
+  }
+
+  EnrollInfo.findOne({activityId, enrollUserId: req.user._id}, '_id')
+    .then(data => {
+      if (data) {
+        res.json({
+          code: -1,
+          message: '您已经报过名了'
+        })
+        return;
+      }
+      let enrollInfo = new EnrollInfo({
+        enrollUserId: req.user._id,
+        activityId,
+        kidName,
+        kidGender,
+        kidBirthday,
+        kidSchool,
+        kidClass,
+        kidTeacher,
+        kidHobby,
+        customEnrollInfo
+      });
+      enrollInfo.save()
+        .then(p => {
+          if (req.user.kidId.length === 0) {
+            //用户尚未创建孩子信息，自动创建
+            let kid = new Kid({
+              userId: [req.user._id],
+              kidName,
+              kidBirthday,
+              kidGender,
+              kidHobby,
+              kidSchool,
+              kidClass,
+              kidTeacher
+            })
+            kid.save()
+              .then(k => {
+                req.user.kidId.push(k._id);
+                return req.user.save()
+              })
+              .then(u => {
+
+              })
+              .catch(err => {
+              })
+          }
+          res.json({
+            code: 0,
+            message: 'ok',
+            result: true
+          })
+        })
+        .catch(err => {
+          res.json({
+            code: ErrMsg.DB.code,
+            message: err.message
+          });
+        })
+    })
+    .catch(err => {
+      res.json({
+        code: ErrMsg.DB.code,
+        message: err.message
+      });
+    })
+});
+
 router.post('/enrollUser', function (req, res) {
   if (!req.user) {
     res.json(ErrMsg.Token);
@@ -197,8 +278,8 @@ router.post('/enrollUser', function (req, res) {
   const {activityId} = req.body;
   let page, pageSize;
   try {
-    page = Number(req.body.page);
-    pageSize = Number(req.body.pageSize);
+    page = Number(req.body.page) || 0;
+    pageSize = Number(req.body.pageSize) || 10;
   }
   catch (err) {
     res.json(ErrMsg.PARAMS);

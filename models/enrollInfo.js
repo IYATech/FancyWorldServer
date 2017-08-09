@@ -7,8 +7,8 @@ const Schema = mongoose.Schema;
  */
 
 const enrollInfoSchema = new Schema({
-  enrollUserId: {type: String, default: ''},
-  activityId: {type: String, default: ''},
+  enrollUserId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
+  activityId: {type: Schema.Types.ObjectId, required: true, ref: 'activity'},
   kidName: {type: String, default: ''},
   kidGender: {type: String, default: ''},
   kidBirthday: {type: String, default: ''},
@@ -16,6 +16,10 @@ const enrollInfoSchema = new Schema({
   kidClass: {type: String, default: ''},
   kidTeacher: [String],
   kidHobby: [String],
+  customEnrollInfo: [{
+    name: {type: String, required: true},
+    value: {type: String, required: true}
+  }],
   createTime: {type: Date, default: Date.now},
 });
 

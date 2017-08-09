@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const Activity = require('../models/activity');
 const ActivityElect = require('../models/activityElect');
+const Work = require('../models/work');
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -107,5 +108,66 @@ router.post('/get', function (req, res) {
       });
     })
 });
+
+router.post('/awardList', function (req, res) {
+  const {activityId, segmentId} = req.body;
+
+  if (!activityId || !segmentId) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  let page, pageSize;
+  try {
+    page = Number(req.body.page) || 0;
+    pageSize = Number(req.body.pageSize) || 10;
+  }
+  catch (err) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  ActivityElect.findOne({activityId, _id: segmentId}, 'score').exec()
+    .then(data => {
+      if (data) {
+        let startIndex = page * pageSize;
+        let arr = data.score.slice(startIndex, startIndex + pageSize);
+        let workIds = arr.map(score => {
+          return score.workId
+        });
+
+        Work.find({_id: {$in: workIds}})
+          .select('_id userId title performer description images audio video createTime')
+          .populate({path: 'userId', select: '_id nickname avatar identity'})
+          .then(result => {
+            for (let i = 0, len = result.length; i < len; i++) {
+              result[i]._doc.award = arr[i].name;
+            }
+            res.json({
+              code: 0,
+              message: 'ok',
+              result: {
+                page,
+                pageSize: result.length,
+                total: data.score.length,
+                data: result
+              }
+            })
+          })
+      }
+      else {
+        res.json({
+          code: -1,
+          message: '未找到活动'
+        });
+      }
+    })
+    .catch(err => {
+      res.json({
+        code: ErrMsg.DB.code,
+        message: err.message
+      })
+    })
+})
 
 module.exports = router;

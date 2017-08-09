@@ -18,7 +18,7 @@ const kidSchema = new Schema({
   kidHobby: [String],
   kidSchool: {type: String, default: ''},
   kidClass: {type: String, default: ''},
-  kidTeacherName: [String],
+  kidTeacher: [String],
   kidCounselor: [String],
   introduction: {type: String, default: ''}
 });

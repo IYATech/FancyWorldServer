@@ -29,7 +29,7 @@ router.post('/add', function (req, res) {
         });
       }
       else {
-        let lesson = new ActivityCourse({
+        let course = new ActivityCourse({
           createrId: req.user._id,
           activityId,
           title,
@@ -38,11 +38,11 @@ router.post('/add', function (req, res) {
           video,
         });
         let segmentId;
-        lesson.save()
+        course.save()
           .then(p => {
             data.segment.push({
               segmentId: p._id,
-              segmentType: 'lesson'
+              segmentType: 'course'
             });
             segmentId = p._id;
             return data.save();

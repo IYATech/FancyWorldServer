@@ -4,6 +4,7 @@
 
 const express = require('express');
 const router = express.Router();
+const ActivityService = require('../service/activity');
 const Activity = require('../models/activity');
 const ActivityUploading = require('../models/activityUploading');
 const Work = require('../models/work');
@@ -110,7 +111,7 @@ router.post('/get', function (req, res) {
 });
 
 router.post('/upload', function (req, res) {
-  if (req.user) {
+  if (!req.user) {
     res.json(ErrMsg.Token);
     return;
   }
@@ -127,14 +128,12 @@ router.post('/upload', function (req, res) {
     return;
   }
 
-  EnrollInfo.findOne({enrollUserId: req.user._id, activityId: activityId}, '_id').exec()
+  Promise.all([
+    ActivityService.isActivityCreater(activityId, req.user._id),
+    EnrollInfo.findOne({enrollUserId: req.user._id, activityId: activityId}, '_id').exec()
+  ])
     .then(data => {
-      if (!data) {
-        res.json({
-          code: -1,
-          message: '您没有报名参与该活动'
-        })
-      } else {
+      if (data[0] || data[1]) {
         let work = new Work({
           userId: req.user._id,
           activityId: activityId,
@@ -168,6 +167,12 @@ router.post('/upload', function (req, res) {
             })
           })
       }
+      else {
+        res.json({
+          code: -1,
+          message: '您没有报名参与该活动'
+        })
+      }
     })
     .catch(err => {
       res.json({
@@ -186,8 +191,8 @@ router.post('/workList', function (req, res) {
 
   let page, pageSize;
   try {
-    page = Number(req.body.page);
-    pageSize = Number(req.body.pageSize);
+    page = Number(req.body.page) || 0;
+    pageSize = Number(req.body.pageSize) || 10;
   }
   catch (err) {
     res.json(ErrMsg.PARAMS);
@@ -195,12 +200,13 @@ router.post('/workList', function (req, res) {
 
   Promise.all([
     Work.find({activityId, segmentId})
-      .select('_id userId title workType performer performerGender performerAge province city description images audio video commentNum likeNum collectionNum createTime')
+      .select('_id userId activityId title workType performer performerGender performerAge province city description images audio video commentNum likeNum createTime')
       .sort({createTime: 'desc'})
       .limit(pageSize)
       .skip(page)
       .populate([
-        {path: 'userId', select: '_id nickname avatar identity'}
+        {path: 'userId', select: '_id nickname avatar identity'},
+        {path: 'activityId', select: '_id title'}
       ]),
     Work.count({activityId, segmentId}).exec()
   ])

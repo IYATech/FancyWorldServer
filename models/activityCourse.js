@@ -3,7 +3,7 @@
  */
 
 /*
-  activityLesson model
+  activityCourse model
  */
 
 const mongoose = require('mongoose');

@@ -19,9 +19,8 @@ const activityElectSchema = new Schema({
   audio: {type: String, default: ''},
   video: {type: String, default: ''},
   score: [{
-    workId: {type: String, required: true, ref: 'work'},
-    name: {type: String, required: true},
-    default: []
+    workId: {type: Schema.Types.ObjectId, required: true, ref: 'work'},
+    name: {type: String, required: true}
   }],
   createTime: {type: Date, default: Date.now},
   postNum: {type: Number, default: 0}
