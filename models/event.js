@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 /*
   event model
  */
-
+/*
 const eventSchema = new Schema({
     activityId:{type: String, default: ''},
     activityTitle:{type: String, default: ''},
@@ -37,6 +37,17 @@ const eventSchema = new Schema({
     thisNickname:{type: String, default: ''},
     thisUid:{type: String, default: ''},
 });
+*/
+const eventSchema = new Schema({
+  createrId: {type: Schema.Types.ObjectId, require: true, ref: 'user'},
+  eventType: {type: String, require: true},
+  activityId: {type: Schema.Types.ObjectId, require: true, ref: 'activity'},
+  segmentId: {type: String, default: ''},
+  workId: {type: Schema.Types.ObjectId, ref: 'work'},
+  commentNum: {type: Number, default: 0},
+  likeNum: {type: Number, default: 0},
+  createTime: {type: Date, default: Date.now},
+});
 
 // Export Mongoose model
-module.exports =  mongoose.model('event', eventSchema);
+module.exports = mongoose.model('event', eventSchema);
