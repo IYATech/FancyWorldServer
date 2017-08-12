@@ -32,8 +32,8 @@ router.post('/register', function (req, res) {
     .then(u => {
       if (u) {
         res.json({
-          code: -1,
-          message: '该手机号已注册'
+          code: -2,
+          message: '手机号已注册'
         });
       }
       else {
@@ -61,18 +61,14 @@ router.post('/register', function (req, res) {
             res.end();
           })
           .catch(err => {
-            res.json({
-              code: ErrMsg.DB.code,
-              message: err.message
-            });
+            res.json(ErrMsg.DB);
+            console.log(err.message);
           })
       }
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      });
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     });
 });
 
@@ -108,10 +104,8 @@ router.post('/login', function (req, res) {
       }
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      })
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     });
 });
 
@@ -129,17 +123,12 @@ router.post('/homepage', function (req, res) {
           result: u
         });
       else {
-        res.json({
-          code: -1,
-          message: '用户不存在',
-        })
+        res.json(ErrMsg.NotFound)
       }
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      })
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     })
 });
 
@@ -157,17 +146,12 @@ router.post('/userInfo', function (req, res) {
           result: u
         });
       else {
-        res.json({
-          code: -1,
-          message: '用户不存在',
-        })
+        res.json(ErrMsg.NotFound)
       }
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      })
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     })
 });
 
@@ -203,10 +187,8 @@ router.post('/kidInfo', function (req, res) {
       });
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      });
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     });
 });
 
@@ -230,6 +212,16 @@ router.post('/authentication', function (req, res) {
     return;
   }
 
+  for (let i = 0, len = req.user.identity.length; i < len; i++) {
+    if (req.user.identity[i] === identity) {
+      res.json({
+        code: -1,
+        message: '您已认证过此身份'
+      });
+      return;
+    }
+  }
+
   User.findOne({phone: refereePhone, realName: refereeName}).exec()
     .then(u => {
       if (u) {
@@ -242,7 +234,7 @@ router.post('/authentication', function (req, res) {
         }
         if (refWeight < myWeight) {
           res.json({
-            code: -1,
+            code: -2,
             message: '该推荐人的身份权限不够'
           })
         }
@@ -253,7 +245,12 @@ router.post('/authentication', function (req, res) {
             recvUserId: u._id,
             msgType: 'authentication',
             msgResult: '',
-            msgContent: identity,
+            msgContent: JSON.stringify({
+              identity,
+              realName,
+              company,
+              job
+            })
           });
 
           msg.save()
@@ -261,7 +258,12 @@ router.post('/authentication', function (req, res) {
               return UserMsg.update({userId: u._id}, {$inc: {chatMsgNum: 1}}).exec();
             })
             .then(() => {
-              return User.update({_id: req.user._id}, {realName, company, job}).exec()
+              //todo 临时代码 直接通过认证
+              req.user.identity.push(identity);
+              req.user.realName = realName;
+              req.user.company = company;
+              req.user.job = job;
+              return req.user.save()
             })
             .then(() => {
               res.json({
@@ -271,15 +273,13 @@ router.post('/authentication', function (req, res) {
               })
             })
             .catch(err => {
-              res.json({
-                code: -1,
-                message: err.message
-              })
+              res.json(ErrMsg.DB);
+              console.log(err.message);
             })
         }
       } else {
         res.json({
-          code: -1,
+          code: -3,
           message: '推荐人不存在'
         })
       }
@@ -311,10 +311,8 @@ router.post('/resetPassword', function (req, res) {
       })
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      })
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     })
 });
 
@@ -332,7 +330,7 @@ router.post('/qnSignature', function (req, res) {
     return;
   }
 
-  let result= userService.getQiniuToken(bucket, ext);
+  let result = userService.getQiniuToken(bucket, ext);
   res.json({
     code: 0,
     message: 'ok',

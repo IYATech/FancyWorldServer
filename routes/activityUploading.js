@@ -26,10 +26,7 @@ router.post('/add', function (req, res) {
   Activity.findOne({_id: activityId, createrId: req.user._id}).exec()
     .then(data => {
       if (!data) {
-        res.json({
-          code: -1,
-          message: '活动不存在'
-        });
+        res.json(ErrMsg.NotFound);
       }
       else {
         let uploading = new ActivityUploading({
@@ -62,18 +59,14 @@ router.post('/add', function (req, res) {
             })
           })
           .catch(err => {
-            res.json({
-              code: ErrMsg.DB.code,
-              message: err.message
-            })
+            res.json(ErrMsg.DB);
+            console.log(err.message);
           })
       }
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      })
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     })
 });
 
@@ -96,17 +89,12 @@ router.post('/get', function (req, res) {
           result: data
         })
       } else {
-        res.json({
-          code: -1,
-          message: '未找到活动'
-        })
+        res.json(ErrMsg.NotFound)
       }
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      });
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     })
 });
 
@@ -161,24 +149,17 @@ router.post('/upload', function (req, res) {
             })
           })
           .catch(err => {
-            res.json({
-              code: ErrMsg.DB.code,
-              message: err.message
-            })
+            res.json(ErrMsg.DB);
+            console.log(err.message);
           })
       }
       else {
-        res.json({
-          code: -1,
-          message: '您没有报名参与该活动'
-        })
+        res.json(ErrMsg.Enroll)
       }
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      })
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     });
 });
 
@@ -223,10 +204,8 @@ router.post('/workList', function (req, res) {
       })
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      });
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     })
 });
 

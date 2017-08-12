@@ -18,10 +18,7 @@ router.post('/add', function (req, res) {
   }
 
   if (req.user.identity.length === 0) {
-    res.json({
-      code: -1,
-      message: '您没有进行认证，请先认证您的身份'
-    });
+    res.json(ErrMsg.Identity);
     return;
   }
 
@@ -96,10 +93,8 @@ router.post('/add', function (req, res) {
       });
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      })
+      res.json(ErrMsg.DB)
+      console.log(err.message)
     });
 });
 
@@ -113,7 +108,7 @@ router.post('/get', function (req, res) {
 
   Promise.all([
     Activity.findById(activityId)
-      .select('_id createrId segment title tag status committee description images audio video sponsor undertaker viewNum signUpNum collectionNum segment createTime endTime postNum')
+      .select('_id createrId segment title tag status committee description images audio video sponsor undertaker customEnrollInfo viewNum signUpNum collectionNum segment createTime endTime postNum')
       .populate([
         {path: 'committee.userId', select: '_id nickname avatar identity'},
         {path: 'createrId', select: '_id nickname avatar identity'}
@@ -122,10 +117,7 @@ router.post('/get', function (req, res) {
   ])
     .then(data => {
         if (!data[0]) {
-          res.json({
-            code: -1,
-            message: '未找到活动'
-          });
+          res.json(ErrMsg.NotFound);
           return;
         }
         data[0]._doc.enrollNum = data[1];
@@ -137,10 +129,8 @@ router.post('/get', function (req, res) {
       }
     )
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      });
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     })
 });
 
@@ -182,10 +172,8 @@ router.post('/myActivities', function (req, res) {
       })
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      });
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     });
 });
 
@@ -246,6 +234,7 @@ router.post('/enroll', function (req, res) {
 
               })
               .catch(err => {
+                console.log(err.message);
               })
           }
           res.json({
@@ -255,17 +244,13 @@ router.post('/enroll', function (req, res) {
           })
         })
         .catch(err => {
-          res.json({
-            code: ErrMsg.DB.code,
-            message: err.message
-          });
+          res.json(ErrMsg.DB);
+          console.log(err.message);
         })
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      });
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     })
 });
 
@@ -276,6 +261,11 @@ router.post('/enrollUser', function (req, res) {
   }
 
   const {activityId} = req.body;
+  if (!activityId) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
   let page, pageSize;
   try {
     page = Number(req.body.page) || 0;
@@ -289,15 +279,12 @@ router.post('/enrollUser', function (req, res) {
   activityService.isActivityCreater(activityId, req.user._id)
     .then(result => {
       if (!result) {
-        res.json({
-          code: -1,
-          message: '没有权限查看'
-        });
+        res.json(ErrMsg.Permission);
         return;
       }
       Promise.all([
         EnrollInfo.find({activityId})
-          .select('_id enrollUserId activityId kidName kidGender kidBirthday kidSchool kidClass kidTeacher kidHobby createTime')
+          .select('_id enrollUserId activityId kidName kidGender kidBirthday kidSchool kidClass kidTeacher kidHobby customEnrollInfo createTime')
           .sort({createTime: 'desc'})
           .limit(pageSize)
           .skip(page * pageSize)
@@ -319,17 +306,13 @@ router.post('/enrollUser', function (req, res) {
           })
         })
         .catch(err => {
-          res.json({
-            code: ErrMsg.DB.code,
-            message: err.message
-          })
+          res.json(ErrMsg.DB);
+          console.log(err.message);
         })
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      });
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     })
 });
 

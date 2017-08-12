@@ -24,10 +24,7 @@ router.post('/add', function (req, res) {
   Activity.findOne({_id: activityId, createrId: req.user._id}).exec()
     .then(data => {
       if (!data) {
-        res.json({
-          code: -1,
-          message: '未找到活动'
-        });
+        res.json(ErrMsg.NotFound);
       }
       else {
         let elect = new ActivityElect({
@@ -61,18 +58,14 @@ router.post('/add', function (req, res) {
             })
           })
           .catch(err => {
-            res.json({
-              code: ErrMsg.DB.code,
-              message: err.message
-            })
+            res.json(ErrMsg.DB);
+            console.log(err.message);
           })
       }
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      })
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     });
 });
 
@@ -95,17 +88,12 @@ router.post('/get', function (req, res) {
           result: data
         })
       } else {
-        res.json({
-          code: -1,
-          message: '未找到活动'
-        })
+        res.json(ErrMsg.NotFound)
       }
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      });
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     })
 });
 
@@ -156,17 +144,12 @@ router.post('/awardList', function (req, res) {
           })
       }
       else {
-        res.json({
-          code: -1,
-          message: '未找到活动'
-        });
+        res.json(ErrMsg.NotFound);
       }
     })
     .catch(err => {
-      res.json({
-        code: ErrMsg.DB.code,
-        message: err.message
-      })
+      res.json(ErrMsg.DB);
+      console.log(err.message);
     })
 })
 

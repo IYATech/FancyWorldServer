@@ -16,6 +16,7 @@ const activitySignInSchema = new Schema({
   address: {type: String, default: ''},
   lat: {type: Number, default: 0},
   lng: {type: String, default: 0},
+  signedUser: [{type: Schema.Types.ObjectId, ref: 'user', default: []}],
   createTime: {type: Date, default: Date.now},
   postNum: {type: Number, default: 0}
 });

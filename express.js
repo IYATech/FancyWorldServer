@@ -10,7 +10,7 @@ const global = require('./common/global');
 
 //connect to mongodb
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://123.56.182.49:27017/test', {
+mongoose.connect('mongodb://iyatest:iyatest2017@123.56.182.49:27017/test', {
   server: {
     reconnectTries: Number.MAX_VALUE,
     socketOptions: {connectTimeoutMS: 1000, socketTimeoutMS: 1000}
