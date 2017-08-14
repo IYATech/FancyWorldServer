@@ -4,7 +4,7 @@
 
 module.exports = {
   qiniu:{
-    upload:'http://upload-z1.qiniu.com',
+    upload:'https://upload-z1.qbox.me',
     url:'http://oty3zrbvf.bkt.clouddn.com/',
     AK:'IbLzbwOGkv0jDAiTl4ENCxy1rN6QmIaIzrMqMOpv',
     SK:'Wh5a8fOBLppyJsBISLT9We1w-vGgXVEJJf_X8P3g'
