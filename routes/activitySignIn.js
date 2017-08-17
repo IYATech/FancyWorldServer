@@ -20,7 +20,7 @@ router.post('/add', function (req, res) {
     audio, lat, lng, address
   } = req.body;
 
-  if (!activityId || !title || !description || !address || !lat || !lng) {
+  if (!activityId || !title || !description) {
     res.json(ErrMsg.PARAMS);
     return;
   }

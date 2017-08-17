@@ -12,7 +12,8 @@ const userMsgSchema = new Schema({
   newFollowMsgNum: {type: Number, required: true, default: 0},
   newLeaveMsgNum: {type: Number, required: true, default: 0},
   newNoticeMsgNum: {type: Number, required: true, default: 0},
-  chatMsgNum: {type: Number, required: true, default: 0}
+  chatMsgNum: {type: Number, required: true, default: 0},
+  lastTime: {type: Date, default: Date.now}
 });
 
 module.exports = mongoose.model('userMsg', userMsgSchema);

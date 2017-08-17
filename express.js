@@ -29,7 +29,8 @@ app.use(require('./service/user').checkToken);
 //routes
 app.use('/user', require('./routes/user'));
 app.use('/event', require('./routes/event'));
-app.use('/message', require('./routes/message'));
+app.use('/userMsg', require('./routes/userMsg'));
+app.use('/chatMsg', require('./routes/chatMsg'));
 app.use('/activity', require('./routes/activity'));
 app.use('/activityTopic', require('./routes/activityTopic'));
 app.use('/activitySignIn', require('./routes/activitySignIn'));
