@@ -38,6 +38,18 @@ const eventSchema = new Schema({
     thisUid:{type: String, default: ''},
 });
 */
+
+/*
+event type
+activity
+activityTopic
+activitySignIn
+activityNotice
+activityUploading
+activityElect
+activityCourse
+ */
+
 const eventSchema = new Schema({
   createrId: {type: Schema.Types.ObjectId, require: true, ref: 'user'},
   eventType: {type: String, require: true},
