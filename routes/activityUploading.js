@@ -183,8 +183,8 @@ router.post('/workList', function (req, res) {
     Work.find({activityId, segmentId})
       .select('_id userId activityId title workType performer performerGender performerAge province city description images audio video commentNum likeNum createTime')
       .sort({createTime: 'desc'})
+      .skip(page * pageSize)
       .limit(pageSize)
-      .skip(page)
       .populate([
         {path: 'userId', select: '_id nickname avatar identity'},
         {path: 'activityId', select: '_id title'}
