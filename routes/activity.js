@@ -5,11 +5,11 @@
 const express = require('express');
 const router = express.Router();
 const activityService = require('../service/activity');
+const userService = require('../service/user');
 const Activity = require('../models/activity');
 const UserMsg = require('../models/userMsg');
 const ChatMsg = require('../models/chatMsg');
 const EnrollInfo = require('../models/enrollInfo');
-const Kid = require('../models/kid');
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -61,29 +61,25 @@ router.post('/add', function (req, res) {
   activity.save()
     .then(data => {
       result = data._id;
-      // 给组委会成员发消息
-      return Promise.all(
-        committeeId.map((uid) => {
-          let msg = new ChatMsg({
-            sendUserId: req.user._id,
-            recvUserId: uid,
-            msgType: 'committee',
-            msgResult: '',
-            msgContent: title,
-            msgContentId: data._id
-          });
 
-          return msg.save();
+      let msgArr = [];
+      for (let i = 0; i < committeeId.length; i++) {
+        msgArr.push({
+          sendUserId: req.user._id,
+          recvUserId: committeeId[i],
+          msgType: 'committee',
+          msgResult: '',
+          msgContent: title,
+          msgContentId: data._id
         })
-      );
-    })
-    .then(() => {
-      // 给组委会成员的消息数加1
-      return Promise.all(
-        committeeId.map((uid) => {
-          return UserMsg.update({userId: uid}, {$inc: {chatMsgNum: 1}}).exec();
-        })
-      );
+      }
+
+      return Promise.all([
+        // 给组委会成员发消息
+        ChatMsg.insertMany(msgArr),
+        // 给组委会成员的消息数加1
+        UserMsg.update({userId: {$in: committeeId}}, {$inc: {chatMsgNum: 1}}).exec()
+      ])
     })
     .then(() => {
       res.json({
@@ -154,8 +150,8 @@ router.post('/myActivities', function (req, res) {
     Activity.find({createrId: req.user._id, status: {$ne: 'end'}})
       .select('_id title segment createTime endTime status')
       .sort({createTime: 'desc'})
-      .limit(pageSize)
       .skip(pageSize * page)
+      .limit(pageSize)
       .exec(),
     Activity.count({createrId: req.user._id, status: {$ne: 'end'}}).exec()
   ])
@@ -196,10 +192,11 @@ router.post('/enroll', function (req, res) {
         res.json({
           code: -1,
           message: '您已经报过名了'
-        })
+        });
         return;
       }
-      let enrollInfo = new EnrollInfo({
+
+      return new EnrollInfo({
         enrollUserId: req.user._id,
         activityId,
         kidName,
@@ -210,43 +207,32 @@ router.post('/enroll', function (req, res) {
         kidTeacher,
         kidHobby,
         customEnrollInfo
-      });
-      enrollInfo.save()
-        .then(p => {
-          if (req.user.kidId.length === 0) {
-            //用户尚未创建孩子信息，自动创建
-            let kid = new Kid({
-              userId: [req.user._id],
-              kidName,
-              kidBirthday,
-              kidGender,
-              kidHobby,
-              kidSchool,
-              kidClass,
-              kidTeacher
-            })
-            kid.save()
-              .then(k => {
-                req.user.kidId.push(k._id);
-                return req.user.save()
-              })
-              .then(u => {
+      }).save();
+    })
+    .then(p => {
+      if (!p)
+        return;
 
-              })
-              .catch(err => {
-                console.log(err.message);
-              })
-          }
-          res.json({
-            code: 0,
-            message: 'ok',
-            result: true
-          })
-        })
-        .catch(err => {
-          res.json(ErrMsg.DB);
-          console.log(err.message);
-        })
+      res.json({
+        code: 0,
+        message: 'ok',
+        result: true
+      });
+
+      if (req.user.kidId.length === 0) {
+        //用户尚未创建孩子信息，自动创建
+        let kid = {
+          kidName,
+          kidBirthday,
+          kidGender,
+          kidHobby,
+          kidSchool,
+          kidClass,
+          kidTeacher
+        };
+        userService.addKidInfo(req.user._id, kid)
+          .catch(err => console.log(err.message));
+      }
     })
     .catch(err => {
       res.json(ErrMsg.DB);
@@ -282,33 +268,33 @@ router.post('/enrollUser', function (req, res) {
         res.json(ErrMsg.Permission);
         return;
       }
-      Promise.all([
+
+      return Promise.all([
         EnrollInfo.find({activityId})
           .select('_id enrollUserId activityId kidName kidGender kidBirthday kidSchool kidClass kidTeacher kidHobby customEnrollInfo createTime')
           .sort({createTime: 'desc'})
-          .limit(pageSize)
           .skip(page * pageSize)
+          .limit(pageSize)
           .populate([
             {path: 'enrollUserId', select: '_id nickname avatar identity'}
           ]),
         EnrollInfo.count({activityId}).exec()
       ])
-        .then(data => {
-          res.json({
-            code: 0,
-            message: 'ok',
-            result: {
-              page,
-              pageSize: data[0].length,
-              total: data[1],
-              data: data[0]
-            }
-          })
-        })
-        .catch(err => {
-          res.json(ErrMsg.DB);
-          console.log(err.message);
-        })
+    })
+    .then(data => {
+      if (!data)
+        return;
+
+      res.json({
+        code: 0,
+        message: 'ok',
+        result: {
+          page,
+          pageSize: data[0].length,
+          total: data[1],
+          data: data[0]
+        }
+      })
     })
     .catch(err => {
       res.json(ErrMsg.DB);

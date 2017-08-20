@@ -4,6 +4,7 @@
 
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const uuid = require('uuid');
 const userService = require('../service/user');
 const User = require('../models/user');
@@ -112,15 +113,26 @@ router.post('/login', function (req, res) {
 router.post('/homepage', function (req, res) {
   const {uid} = req.body;
 
-  User.findOne({_id: uid})
-    .select('_id avatar nickname fansNum followNum followNum')
+  User.aggregate([
+    {$match: {_id: mongoose.Types.ObjectId(uid)}},
+    {
+      $project: {
+        _id: 1,
+        avatar: 1,
+        nickname: 1,
+        activeValue: 1,
+        fansNum: {$size: '$fansId'},
+        followNum: {$size: '$followId'}
+      }
+    }
+  ])
     .exec()
     .then(u => {
-      if (u)
+      if (u.length)
         res.json({
           code: 0,
           message: 'ok',
-          result: u
+          result: u[0]
         });
       else {
         res.json(ErrMsg.NotFound)
@@ -252,12 +264,14 @@ router.post('/authentication', function (req, res) {
               job
             })
           });
+          userService.sendChatMsg(msg)
+            .then(r => {
+              // res.json({
+              //   code: 0,
+              //   message: 'ok',
+              //   result: true
+              // })
 
-          msg.save()
-            .then(() => {
-              return UserMsg.update({userId: u._id}, {$inc: {chatMsgNum: 1}}).exec();
-            })
-            .then(() => {
               //todo 临时代码 直接通过认证
               req.user.identity.push(identity);
               req.user.realName = realName;
@@ -337,6 +351,50 @@ router.post('/qnSignature', function (req, res) {
     result
   })
 
+});
+
+router.post('/follow', function (res, req) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {action, userId} = req.body;
+  if (!userId || !action) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  if (action !== 'yes' && action !== 'no') {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  User.findOne({_id: userId}, '_id')
+    .exec()
+    .then(u => {
+      if (u) {
+        let isFollow = action === 'yes';
+        return Promise.all([
+          User.updateOne({_id: req.user._id}, isFollow ? {$addToSet: {followId: u._id}} : {$pull: {followId: u._id}}),
+          User.updateOne({_id: u._id}, isFollow ? {$addToSet: {fansId: req.user._id}} : {$pull: {followId: req.user._id}})
+        ])
+      }
+    })
+    .then(data => {
+      if (!data)
+        return;
+
+      res.json({
+        code: 0,
+        message: 'ok',
+        result: true
+      })
+    })
+    .catch(err => {
+      res.json(ErrMsg.DB);
+      console.log(err.message);
+    })
 });
 
 

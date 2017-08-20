@@ -192,8 +192,8 @@ router.post('/signedUser', function (req, res) {
         EnrollInfo.find({activityId, enrollUserId: condition})
           .select('_id enrollUserId activityId kidName kidGender kidBirthday kidSchool kidClass kidTeacher kidHobby customEnrollInfo createTime')
           .sort({createTime: 'desc'})
-          .limit(pageSize)
           .skip(page * pageSize)
+          .limit(pageSize)
           .populate([
             {path: 'enrollUserId', select: '_id nickname avatar identity'}
           ]),

@@ -3,6 +3,9 @@
  */
 
 const User = require('../models/user');
+const UserMsg = require('../models/userMsg');
+const ChatMsg = require('../models/chatMsg');
+const Kid = require('../models/kid');
 const config = require('../common/config');
 const qiniu = require('qiniu');
 const uuid = require('uuid');
@@ -55,4 +58,56 @@ exports.getQiniuToken = function (bucket, ext) {
     key: keyToOverwrite,
     host: config.qiniu.upload
   }
+};
+
+/**
+ *
+ * @param userId
+ * @param info
+ * @returns {Promise}
+ */
+exports.authentication = function (userId, info) {
+  return new Promise(function (resolve, reject) {
+    const {identity, realName, company, job} = info;
+    User.updateOne({_id: userId}, {$addToSet: {identity}, realName, company, job})
+      .exec()
+      .then(p => resolve(p.n))
+      .catch(err => reject(err))
+  });
+};
+
+/**
+ * 发送消息
+ * @param msgObj
+ * @returns {Promise}
+ */
+exports.sendChatMsg = function (msgObj) {
+  return new Promise(function (resolve, reject) {
+    new ChatMsg(msgObj).save()
+      .then(() => {
+        return UserMsg.findOneAndUpdate({userId: msgObj.recvUserId}, {$inc: {chatMsgNum: 1}}).exec()
+      })
+      .then(p => {
+        resolve(!!p)
+      })
+      .catch(err => reject(err))
+  })
+};
+
+/**
+ * 增加孩子信息
+ * @param userId
+ * @param kidInfo
+ * @returns {Promise}
+ */
+exports.addKidInfo = function (userId, kidInfo) {
+  return new Promise(function (resolve, reject) {
+    kidInfo.userId = userId;
+    new Kid(kidInfo).save()
+      .then(k => {
+        return User.update({_id: userId}, {$push: {kidId: k._id}}).exec()
+      })
+      .then(() => resolve(true))
+      .catch(err => reject(err))
+  })
 };
