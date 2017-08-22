@@ -4,6 +4,7 @@
 
 const express = require('express');
 const router = express.Router();
+const activityService = require('../service/activity');
 const Activity = require('../models/activity');
 const ActivityElect = require('../models/activityElect');
 const Work = require('../models/work');
@@ -151,6 +152,52 @@ router.post('/awardList', function (req, res) {
       res.json(ErrMsg.DB);
       console.log(err.message);
     })
-})
+});
+
+router.post('/result', function (req, res) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {activityId, segmentId, electResult} = req.body;
+  if (!activityId || !segmentId || !electResult) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  if (!Array.isArray(electResult)) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  activityService.isActivityCreater(activityId, req.user._id)
+    .then(r => {
+      if (!r) {
+        res.json(ErrMsg.Permission);
+      }
+
+      return ActivityElect.updateOne({_id: segmentId, createrId: req.user._id, activityId}, {score: electResult})
+    })
+    .then(n => {
+      if (!n)
+        return;
+
+      if (n.n === 0) {
+        res.json(ErrMsg.NotFound);
+      }
+      else {
+        res.json({
+          code: 0,
+          message: 'ok',
+          result: true
+        })
+      }
+    })
+    .catch(err => {
+      res.json(ErrMsg.DB);
+      console.log(err.message);
+    })
+});
 
 module.exports = router;

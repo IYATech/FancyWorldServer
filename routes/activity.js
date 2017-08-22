@@ -219,7 +219,7 @@ router.post('/enroll', function (req, res) {
         result: true
       });
 
-      if (req.user.kidId.length === 0) {
+      if (!req.user.kidId) {
         //用户尚未创建孩子信息，自动创建
         let kid = {
           kidName,

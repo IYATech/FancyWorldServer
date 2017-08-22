@@ -13,7 +13,7 @@ mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://iyatest:iyatest2017@123.56.182.49:27017/test', {
   server: {
     reconnectTries: Number.MAX_VALUE,
-    socketOptions: {connectTimeoutMS: 1000, socketTimeoutMS: 1000}
+    socketOptions: {connectTimeoutMS: 10000, socketTimeoutMS: 10000}
   }
 });
 
@@ -38,6 +38,7 @@ app.use('/activityNotice', require('./routes/activityNotice'));
 app.use('/activityUploading', require('./routes/activityUploading'));
 app.use('/activityElect', require('./routes/activityElect'));
 app.use('/activityCourse', require('./routes/activityCourse'));
+app.use('/post', require('./routes/post'));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

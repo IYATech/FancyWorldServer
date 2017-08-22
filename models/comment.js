@@ -11,8 +11,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const commentSchema = new Schema({
-  createrId: {type: Schema.types.ObjectId, required: true, ref: 'user'},
-  postId: {type: Schema.types.ObjectId, required: true, ref: 'post'},
+  createrId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
+  postId: {type: Schema.Types.ObjectId, required: true, ref: 'post'},
   content: {type: String, default: ''},
   createTime: {type: Date, default: Date.now}
 });

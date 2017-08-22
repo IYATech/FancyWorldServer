@@ -16,8 +16,8 @@ router.post('/get', function (req, res) {
     return;
   }
 
-  const {chatUserId, action, timestamp} = req.body;
-  if (!chatUserId || !action || !timestamp) {
+  const {chatUserId, action} = req.body;
+  if (!chatUserId || !action) {
     res.json(ErrMsg.PARAMS);
     return;
   }
@@ -27,9 +27,10 @@ router.post('/get', function (req, res) {
     return;
   }
 
-  let pageSize;
+  let pageSize, timestamp;
   try {
     pageSize = Number(req.body.pageSize) || 10;
+    timestamp = req.body.timestamp || 0;
   }
   catch (err) {
     res.json(ErrMsg.PARAMS);
@@ -59,12 +60,11 @@ router.post('/get', function (req, res) {
         code: 0,
         message: true,
         result: {
-          total: data[1],
           action,
           timestamp,
-          pageSize: data[0].length,
+          pageSize: data.length,
           chatUserId,
-          data: data[0]
+          data
         }
       })
     })
