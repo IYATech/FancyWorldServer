@@ -121,6 +121,7 @@ router.post('/homepage', function (req, res) {
         avatar: 1,
         nickname: 1,
         activeValue: 1,
+        identity: 1,
         fansNum: {$size: '$fansId'},
         followNum: {$size: '$followId'}
       }
@@ -188,8 +189,8 @@ router.post('/kidInfo', function (req, res) {
     return;
   }
 
-  Kid.find({userId: {$elemMatch: {$eq: req.user._id}}})
-    .select('kidName kidGender kidBirthday kidHobby kidSchool kidClass kidTeacherName kidCounselor introduction')
+  Kid.findOne({_id: req.user.kidId, userId: req.user._id})
+    .select('kidName kidGender kidBirthday kidHobby kidSchool kidClass kidTeacher kidCounselor introduction')
     .exec()
     .then(kid => {
       res.json({
@@ -397,5 +398,58 @@ router.post('/follow', function (res, req) {
     })
 });
 
+router.post('/modifyUserInfo', function (req, res) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {birthday, gender, address, company, job, introduction} = req.body;
+
+  User.updateOne({_id: req.user._id}, {birthday, gender, address, company, job, introduction})
+    .then(() => {
+      res.json({
+        code: 0,
+        message: 'ok',
+        result: true
+      })
+    })
+    .catch(err => {
+      res.json(ErrMsg.DB);
+      console.log(err.message);
+    })
+});
+
+router.post('/modifyKidInfo', function (req, res) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {introduction, kidBirthday, kidClass, kidCounselor, kidGender, kidHobby, kidName, kidSchool, kidTeacher} = req.body;
+
+  userService.addKidInfo(req.user._id, {
+    introduction,
+    kidBirthday,
+    kidClass,
+    kidCounselor,
+    kidGender,
+    kidHobby,
+    kidName,
+    kidSchool,
+    kidTeacher
+  })
+    .then(() => {
+      res.json({
+        code: 0,
+        message: 'ok',
+        result: true
+      })
+    })
+    .catch(err => {
+      res.json(ErrMsg.DB);
+      console.log(err.message);
+    });
+});
 
 module.exports = router;

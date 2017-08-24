@@ -11,9 +11,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const postSchema = new Schema({
-  createrId: {types: Schema.ObjectId, required: true, ref: 'user'},
-  sourceType: {type: String, default: ''},
-  sourceId: {type: String, required: true},
+  createrId: {type: Schema.Types.ObjectId, required: true, ref: 'user'},
+  segmentType: {type: String, default: ''},
+  segmentId: {type: String, required: true},
   content: {type: String, required: true},
   images: [String],
   audio: {type: String, default: ''},

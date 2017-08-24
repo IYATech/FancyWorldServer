@@ -15,7 +15,7 @@ router.post('/new', function (req, res) {
   }
 
   UserMsg.findOneAndUpdate({userId: req.user._id}, {lastTime: Date.now()})
-    .select('newLikeMsgNum newFollowMsgNum newLeaveMsgNum newNoticeMsgNum chatMsgNum lastTime')
+    .select('userId newLikeMsgNum newFollowMsgNum newLeaveMsgNum newNoticeMsgNum chatMsgNum lastTime')
     .exec()
     .then(data => {
       if (data) {
@@ -38,10 +38,16 @@ router.post('/recentChat', function (req, res) {
     return;
   }
 
-  let page, pageSize;
+  let {action} = req.body;
+  if (action !== 'refresh' && action !== 'more') {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  let pageSize, timestamp;
   try {
-    page = Number(req.body.page) || 0;
-    pageSize = Number(req.body.pageSize) || 10;
+    pageSize = Number(req.body.pageSize) || 0;
+    timestamp = req.body.timestamp || 0;
   }
   catch (err) {
     res.json(ErrMsg.PARAMS);
@@ -49,7 +55,11 @@ router.post('/recentChat', function (req, res) {
   }
 
   ChatMsg.aggregate([
-    {$match: {$or: [{sendUserId: req.user._id}, {recvUserId: req.user._id}]}},
+    {
+      $match: {
+        $or: [{sendUserId: req.user._id}, {recvUserId: req.user._id}]
+      }
+    },
     {
       $project: {
         msgType: 1,
@@ -74,58 +84,51 @@ router.post('/recentChat', function (req, res) {
       }
     },
     {
-      $facet: {
-        data: [
-          {$sort: {createTime: -1}},
-          {$skip: page * pageSize},
-          {$limit: pageSize},
-          {
-            $lookup: {
-              from: 'users',
-              localField: '_id',
-              foreignField: '_id',
-              as: 'user'
-            }
-          },
-          {
-            $project: {
-              _id: '$msgId',
-              msgType: 1,
-              msgResult: 1,
-              msgContent: 1,
-              msgContentId: 1,
-              msgCreateTime: 1,
-              user: {$arrayElemAt: ['$user', 0]}
-            }
-          },
-          {
-            $project: {
-              msgType: 1,
-              msgResult: 1,
-              msgContent: 1,
-              msgContentId: 1,
-              msgCreateTime: 1,
-              user: {_id: 1, nickname: 1, avatar: 1, identity: 1}
-            }
-          },
-        ],
-        count: [
-          {$count: 'total'}
-        ]
+      $match: {
+        msgCreateTime: action === 'refresh' ? {$gt: new Date(timestamp)} : {$lt: new Date(timestamp)}
+      }
+    },
+    {$limit: pageSize},
+    {
+      $lookup: {
+        from: User.collection.collectionName,
+        localField: '_id',
+        foreignField: '_id',
+        as: 'user'
+      }
+    },
+    {
+      $project: {
+        _id: '$msgId',
+        msgType: 1,
+        msgResult: 1,
+        msgContent: 1,
+        msgContentId: 1,
+        msgCreateTime: 1,
+        user: {$arrayElemAt: ['$user', 0]}
+      }
+    },
+    {
+      $project: {
+        msgType: 1,
+        msgResult: 1,
+        msgContent: 1,
+        msgContentId: 1,
+        msgCreateTime: 1,
+        user: {_id: 1, nickname: 1, avatar: 1, identity: 1}
       }
     },
   ])
     .exec()
     .then(data => {
-      let total = data[0].count.length === 0 ? 0 : data[0].count[0].total;
       res.json({
         code: 0,
         message: 'ok',
         result: {
-          total,
-          page,
-          pageSize: data[0].data.length,
-          data: data[0].data
+          action,
+          timestamp,
+          pageSize: data.length,
+          data
         }
       })
     })
@@ -133,7 +136,6 @@ router.post('/recentChat', function (req, res) {
       res.json(ErrMsg.DB);
       console.log(err.message);
     })
-
 });
 
 

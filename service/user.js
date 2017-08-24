@@ -102,12 +102,25 @@ exports.sendChatMsg = function (msgObj) {
  */
 exports.addKidInfo = function (userId, kidInfo) {
   return new Promise(function (resolve, reject) {
-    kidInfo.userId = userId;
-    new Kid(kidInfo).save()
+    Kid.findOne({userId})
+      .exec()
       .then(k => {
-        return User.update({_id: userId}, {$push: {kidId: k._id}}).exec()
+        if (k) {
+          Kid.updateOne({userId}, kidInfo)
+            .exec()
+            .then(() => resolve(true))
+            .catch(err => reject(err))
+        }
+        else {
+          kidInfo.userId = userId;
+          new Kid(kidInfo).save()
+            .then(p => {
+              return User.update({_id: userId}, {kidId: p._id}).exec()
+            })
+            .then(() => resolve(true))
+            .catch((err) => reject(err))
+        }
       })
-      .then(() => resolve(true))
       .catch(err => reject(err))
   })
 };

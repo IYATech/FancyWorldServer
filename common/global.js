@@ -46,4 +46,22 @@ global.IdentityWeight = {
   'leader': 3
 };
 
+/*
+  define segmentType and collection name
+ */
+
+const models = {
+  'theme': require('../models/activity'),
+  'topic': require('../models/activityTopic'),
+  'signIn': require('../models/activitySignIn'),
+  'notice': require('../models/activityNotice'),
+  'uploading': require('../models/activityUploading'),
+  'elect': require('../models/activityElect'),
+  'course': require('../models/activityCourse')
+};
+
+global.GetModel = function (name) {
+  return models[name];
+};
+
 module.exports = global;
