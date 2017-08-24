@@ -4,136 +4,201 @@
 
 const express = require('express');
 const router = express.Router();
+const Activity = require('../models/activity');
 
+const User = require('../models/user');
 const Event = require('../models/event');
 
-router.post('/event', function (req, res, next) {
+router.post('/event', function (req, res) {
+  /*
+  Event.find
+   */
+  let page, pageSize;
+  try {
+    page = Number(req.body.page) || 0;
+    pageSize = Number(req.body.pageSize) || 10;
+  }
+  catch (err) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
 
-  const {page} = req.body;
-
-  Event.findOne({})
-    .then(events => {
-      if (events) {
-        const identitys = events.identity;
-        const nicknames = events.nickname;
-        const uids = events.uid;
-        const avatars = events.avatar;
-
-        let committeeUsers = uids.map(function (id, i) {
-          return {
-            id: id,
-            identity: identitys[i].slice(),
-            avatar: avatars[i],
-            nickname: nicknames[i]
-          }
-        });
-
-        const data = [
-          {
-            eventID: events._id,
-            type: 'NewsTheme',
-            date: new Date(events.date * 1000).toLocaleDateString(),
-            likeNum: events.likeNum,
-            commentNum: events.commentNum,
-            user: {
-              id: events.thisUid,
-              nickname: events.thisNickname,
-              identity: events.thisIdentity.slice(),
-              avatar: events.thisAvatar
-            },
-            content: {
-              activityID: events.activityId,
-              activityTitle: events.activityTitle,
-
-              committeeUsers: committeeUsers,
-              text: events.text,
-              mediaType: 'photo',
-              images: events.images,
-            }
-          },
-          {
-            eventID: events._id,
-            type: 'NewsTopic',
-            date: new Date(events.date * 1000).toLocaleDateString(),
-            likeNum: events.likeNum,
-            commentNum: events.commentNum,
-            user: {
-              id: events.thisUid,
-              nickname: events.thisNickname,
-              identity: events.thisIdentity.slice(),
-              avatar: events.thisAvatar
-            },
-            content: {
-              activityID: events.activityId,
-              activityTitle: events.activityTitle,
-              segmentID: events.segmentId,
-              segmentTitle: events.segmentTitle,
-              committeeUsers: committeeUsers,
-              text: events.text,
-              mediaType: 'video',
-              video: events.video,
-              thumbnail: events.thumbnail,
-            }
-          },
-          {
-            eventID: events._id,
-            type: 'NewsSignIn',
-            date: new Date(events.date * 1000).toLocaleDateString(),
-            likeNum: events.likeNum,
-            commentNum: events.commentNum,
-            user: {
-              id: events.thisUid,
-              nickname: events.thisNickname,
-              identity: events.thisIdentity.slice(),
-              avatar: events.thisAvatar
-            },
-            content: {
-              activityID: events.activityId,
-              activityTitle: events.activityTitle,
-              segmentID: events.segmentId,
-              segmentTitle: events.segmentTitle,
-              committeeUsers: committeeUsers,
-              text: events.text,
-              mediaType: 'audio',
-              audio: events.audio,
-              location: {
-                lat: events.lat,
-                lng: events.lng,
-                address: events.address
-              }
-            }
-          }
-        ];
-
-        res.json({
-          'code': 0,
-          'message': 'ok',
-          'result': {
-            total: data.length * 10,  //模拟多条数据
-            page: page,
-            pageSize: data.length,
-            data: data
-          }
-        })
+  Event.aggregate([
+    {$sort: {createTime: -1}},
+    {$skip: page * pageSize},
+    {$limit: pageSize},
+    {
+      $lookup: {
+        from: User.collection.collectionName,
+        localField: 'createrId',
+        foreignField: '_id',
+        as: 'user'
       }
-      else {
-        res.json({
-          'code': 0,
-          'message': 'ok',
-          'result': {
-            total: 0,
-            page: page,
-            pageSize: 0,
-            data: []
-          }
-        })
+    },
+    {
+      $unwind: '$user',
+    },
+    {
+      $lookup: {
+        from: Activity.collection.collectionName,
+        localField: 'activityId',
+        foreignField: '_id',
+        as: 'activity'
       }
+    },
+    {
+      $unwind: '$activity'
+    },
+    {
+      $project: {
+        eventType: 1,
+        commentNum: 1,
+        likeNum: 1,
+        createTime: 1,
+        user: {
+          _id: 1,
+          nickname: 1,
+          identity: 1,
+          avatar: 1,
+        },
+        activity: {
+          _id: 1,
+          title: 1,
+        },
+        committeeId: '$activity.committee.userId',
+        segmentId: 1,
+        segmentTitle: 1,
+        segmentText: 1,
+        audio: 1,
+        video: 1,
+        images: 1,
+        workId: 1,
+        workTitle: 1,
+        postId: 1,
+        location: 1,
+      }
+    },
+    {
+      $unwind: {
+        path: '$committeeId',
+        preserveNullAndEmptyArrays: true,
+      }
+    },
+    {
+      $lookup: {
+        from: User.collection.collectionName,
+        localField: 'committeeId',
+        foreignField: '_id',
+        as: 'committeeUser'
+      }
+    },
+    {
+      $unwind: {
+        path: '$committeeUser',
+        preserveNullAndEmptyArrays: true,
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        eventType: 1,
+        commentNum: 1,
+        likeNum: 1,
+        createTime: 1,
+        user: 1,
+        activity: 1,
+        committeeUser: {
+          uid: '$committeeUser._id',
+          avatar: '$committeeUser.avatar',
+          identity: '$committeeUser.identity',
+        },
+        segmentId: 1,
+        segmentTitle: 1,
+        segmentText: 1,
+        audio: 1,
+        video: 1,
+        images: 1,
+        workId: 1,
+        workTitle: 1,
+        postId: 1,
+        location: 1,
+      }
+    },
+    {
+      $group: {
+        _id: '$_id',
+        eventType: {$last: '$eventType'},
+        commentNum: {$last: '$commentNum'},
+        likeNum: {$last: '$likeNum'},
+        createTime: {$last: '$createTime'},
+        user: {$last: '$user'},
+        activity: {$last: '$activity'},
+        committeeUsers: {$push: '$committeeUser'},
+        segmentId: {$last: '$segmentId'},
+        segmentTitle: {$last: '$segmentTitle'},
+        segmentText: {$last: '$segmentText'},
+        audio: {$last: '$audio'},
+        video: {$last: '$video'},
+        images: {$last: '$images'},
+        workId: {$last: '$workId'},
+        workTitle: {$last: '$workTitle'},
+        postId: {$last: '$postId'},
+        location: {$last: '$location'},
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        eventId: '$_id',
+        type: '$eventType',
+        commentNum: 1,
+        likeNum: 1,
+        date: '$createTime',
+        user: {
+          id: '$_id',
+          avatar: 1,
+          identity: 1,
+          nickname: 1,
+        },
+        content: {
+          activityId: '$activity._id',
+          activityTitle: '$activity.title',
+          audio: '$audio',
+          committeeUsers: '$committeeUsers',
+          images: '$images',
+          segmentId: '$segmentId',
+          segmentTitle: '$segmentTitle',
+          text: '$segmentText',
+          video: '$video',
+          workId: '$workId',
+          workTitle: '$workTitle',
+          postId: '$postId',
+          location: {
+            address: '$address',
+            lat: '$lat',
+            lng: '$lng',
+          }
+        },
+      }
+    },
+  ])
+    .exec()
+    .then(data => {
+      res.json({
+        'code': 0,
+        'message': 'ok',
+        'result': {
+          total: data.length * pageSize,  //模拟多条数据
+          page: page,
+          pageSize: data.length,
+          data: data
+        }
+      })
     })
     .catch(err => {
-      if (err) {
-        res.json({'code': -1, 'message': err.message})
-      }
-    });
+      res.json(ErrMsg.DB);
+      console.log(err.message);
+    })
 });
 
 module.exports = router;

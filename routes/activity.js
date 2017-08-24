@@ -10,6 +10,7 @@ const Activity = require('../models/activity');
 const UserMsg = require('../models/userMsg');
 const ChatMsg = require('../models/chatMsg');
 const EnrollInfo = require('../models/enrollInfo');
+const Event = require('../models/event');
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -82,6 +83,20 @@ router.post('/add', function (req, res) {
       ])
     })
     .then(() => {
+      let event = new Event({
+        createrId: req.user._id,
+        eventType: EventType.NewsTheme,
+        activityId: result,
+        segmentId: result,
+        segmentTitle: activity.title,
+        segmentText: activity.description,
+        audio: activity.audio,
+        video: activity.video,
+        images: activity.images,
+      });
+      return event.save();
+    })
+    .then(() => {
       res.json({
         code: 0,
         message: 'ok',
@@ -89,7 +104,7 @@ router.post('/add', function (req, res) {
       });
     })
     .catch(err => {
-      res.json(ErrMsg.DB)
+      res.json(ErrMsg.DB);
       console.log(err.message)
     });
 });
@@ -182,7 +197,7 @@ router.post('/enroll', function (req, res) {
   const {activityId, kidName, kidGender, kidBirthday, kidSchool, kidClass, kidTeacher, kidHobby, customEnrollInfo} = req.body;
 
   if (!activityId || !kidName || !kidGender || !kidBirthday || !kidSchool || !kidClass || !kidTeacher || !kidHobby) {
-    res.json(ErrMsg.PARAMS)
+    res.json(ErrMsg.PARAMS);
     return;
   }
 
