@@ -8,6 +8,7 @@ const config = require('../common/config');
 const Activity = require('../models/activity');
 const ActivitySignIn = require('../models/activitySignIn');
 const EnrollInfo = require('../models/enrollInfo');
+const Event = require('../models/event');
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -52,6 +53,20 @@ router.post('/add', function (req, res) {
             });
             segmentId = p._id;
             return data.save();
+          })
+          .then(() => {
+            let event = new Event({
+              createrId: req.user.id,
+              eventType: global.EventType.NewsSignIn,
+              activityId: signIn.activityId,
+              segmentId: segmentId,
+              segmentTitle: signIn.title,
+              segmentText: signIn.description,
+              images: signIn.images,
+              audio: signIn.audio,
+              video: signIn.video,
+            });
+            return event.save();
           })
           .then(() => {
             res.json({

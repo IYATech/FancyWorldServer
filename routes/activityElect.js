@@ -8,6 +8,7 @@ const activityService = require('../service/activity');
 const Activity = require('../models/activity');
 const ActivityElect = require('../models/activityElect');
 const Work = require('../models/work');
+const Event = require('../models/event');
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -47,6 +48,20 @@ router.post('/add', function (req, res) {
             });
             segmentId = p._id;
             return data.save();
+          })
+          .then(() => {
+            let event = new Event({
+              createrId: req.user.id,
+              eventType: global.EventType.NewsElect,
+              activityId: elect.activityId,
+              segmentId: segmentId,
+              segmentTitle: elect.title,
+              segmentText: elect.description,
+              images: elect.images,
+              audio: elect.audio,
+              video: elect.video,
+            });
+            return event.save();
           })
           .then(() => {
             res.json({

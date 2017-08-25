@@ -76,6 +76,7 @@ router.post('/event', function (req, res) {
         workTitle: 1,
         postId: 1,
         location: 1,
+        param: 1,
       }
     },
     {
@@ -122,6 +123,7 @@ router.post('/event', function (req, res) {
         workTitle: 1,
         postId: 1,
         location: 1,
+        param: 1,
       }
     },
     {
@@ -144,6 +146,7 @@ router.post('/event', function (req, res) {
         workTitle: {$last: '$workTitle'},
         postId: {$last: '$postId'},
         location: {$last: '$location'},
+        param: {$last: '$param'},
       },
     },
     {
@@ -177,10 +180,12 @@ router.post('/event', function (req, res) {
             address: '$address',
             lat: '$lat',
             lng: '$lng',
-          }
+          },
+          performer: '$performer',
         },
       }
     },
+    {$sort: {date: -1}},
   ])
     .exec()
     .then(data => {
@@ -188,7 +193,7 @@ router.post('/event', function (req, res) {
         'code': 0,
         'message': 'ok',
         'result': {
-          total: data.length * pageSize,  //模拟多条数据
+          total: data.length,  //模拟多条数据
           page: page,
           pageSize: data.length,
           data: data

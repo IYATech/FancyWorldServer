@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const Activity = require('../models/activity');
 const ActivityCourse = require('../models/activityCourse');
+const Event = require('../models/event');
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -43,6 +44,19 @@ router.post('/add', function (req, res) {
             });
             segmentId = p._id;
             return data.save();
+          })
+          .then(() => {
+            let event = new Event({
+              createrId: req.user.id,
+              eventType: global.EventType.NewsCourse,
+              activityId: course.activityId,
+              segmentId: segmentId,
+              segmentTitle: course.title,
+              segmentText: course.description,
+              video: course.video,
+              performer:course.performer
+            });
+            return event.save();
           })
           .then(() => {
             res.json({

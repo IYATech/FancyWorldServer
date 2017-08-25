@@ -46,6 +46,20 @@ global.IdentityWeight = {
   'leader': 3
 };
 
+global.EventType = {
+  'NewsTheme': 'NewsTheme',
+  'NewsTopic': 'NewsTopic',
+  'NewsSignIn': 'NewsSignIn',
+  'NewsNotice': 'NewsNotice',
+  'NewsUpload': 'NewsUpload',
+  'NewsElect': 'NewsElect',
+  'NewsCourse': 'NewsCourse',
+  'NewsEnroll': 'NewsEnroll',
+  'NewsWorks': 'NewsWorks',
+  'NewsModify': 'NewsModify',
+  'NewsPost': 'NewsPost',
+};
+
 /*
   define segmentType and collection name
  */

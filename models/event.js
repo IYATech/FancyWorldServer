@@ -64,6 +64,7 @@ const eventSchema = new Schema({
   commentNum: {type: Number, default: 0},
   likeNum: {type: Number, default: 0},
   createTime: {type: Date, default: Date.now},
+  performer: {type: String, default: ''},
 });
 
 // Export Mongoose model

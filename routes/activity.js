@@ -85,7 +85,7 @@ router.post('/add', function (req, res) {
     .then(() => {
       let event = new Event({
         createrId: req.user._id,
-        eventType: EventType.NewsTheme,
+        eventType: global.EventType.NewsTheme,
         activityId: result,
         segmentId: result,
         segmentTitle: activity.title,

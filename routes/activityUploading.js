@@ -9,6 +9,7 @@ const Activity = require('../models/activity');
 const ActivityUploading = require('../models/activityUploading');
 const Work = require('../models/work');
 const EnrollInfo = require('../models/enrollInfo');
+const Event = require("../models/event");
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -47,6 +48,20 @@ router.post('/add', function (req, res) {
             });
             segmentId = p._id;
             return data.save();
+          })
+          .then(() => {
+            let event = new Event({
+              createrId: req.user.id,
+              eventType: global.EventType.NewsUpload,
+              activityId: uploading.activityId,
+              segmentId: segmentId,
+              segmentTitle: uploading.title,
+              segmentText: uploading.description,
+              images: uploading.images,
+              audio: uploading.audio,
+              video: uploading.video,
+            });
+            return event.save();
           })
           .then(() => {
             res.json({
