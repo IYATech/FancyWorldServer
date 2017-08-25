@@ -180,7 +180,7 @@ router.post('/upload', function (req, res) {
 
 router.post('/workList', function (req, res) {
   const {activityId, segmentId} = req.body;
-  if (!activityId || !segmentId) {
+  if (!activityId) {
     res.json(ErrMsg.PARAMS);
     return;
   }
@@ -194,8 +194,16 @@ router.post('/workList', function (req, res) {
     res.json(ErrMsg.PARAMS);
   }
 
+  let condition;
+  if (segmentId) {
+    condition = {activityId, segmentId}
+  }
+  else {
+    condition = {activityId}
+  }
+
   Promise.all([
-    Work.find({activityId, segmentId})
+    Work.find(condition)
       .select('_id userId activityId title workType performer performerGender performerAge province city description images audio video commentNum likeNum createTime')
       .sort({createTime: 'desc'})
       .skip(page * pageSize)
@@ -204,7 +212,7 @@ router.post('/workList', function (req, res) {
         {path: 'userId', select: '_id nickname avatar identity'},
         {path: 'activityId', select: '_id title'}
       ]),
-    Work.count({activityId, segmentId}).exec()
+    Work.count(condition).exec()
   ])
     .then(data => {
       res.json({

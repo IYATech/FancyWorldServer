@@ -46,7 +46,7 @@ router.post('/recentChat', function (req, res) {
 
   let pageSize, timestamp;
   try {
-    pageSize = Number(req.body.pageSize) || 0;
+    pageSize = Number(req.body.pageSize) || 30;
     timestamp = req.body.timestamp || 0;
   }
   catch (err) {
@@ -89,6 +89,7 @@ router.post('/recentChat', function (req, res) {
       }
     },
     {$limit: pageSize},
+    {$sort: {msgCreateTime: -1}},
     {
       $lookup: {
         from: User.collection.collectionName,

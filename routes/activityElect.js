@@ -9,6 +9,7 @@ const Activity = require('../models/activity');
 const ActivityElect = require('../models/activityElect');
 const Work = require('../models/work');
 const Event = require('../models/event');
+const _ = require('lodash')
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -144,17 +145,21 @@ router.post('/awardList', function (req, res) {
           .select('_id userId title performer description images audio video createTime')
           .populate({path: 'userId', select: '_id nickname avatar identity'})
           .then(result => {
-            for (let i = 0, len = result.length; i < len; i++) {
-              result[i]._doc.award = arr[i].name;
-            }
+            let workArr = result.map(w => {
+              let i = _.findIndex(arr, {workId: w._doc._id})
+              if (i >= 0) {
+                w._doc.award = arr[i].name
+                return w;
+              }
+            })
             res.json({
               code: 0,
               message: 'ok',
               result: {
                 page,
-                pageSize: result.length,
+                pageSize: workArr.length,
                 total: data.score.length,
-                data: result
+                data: workArr
               }
             })
           })
@@ -184,6 +189,13 @@ router.post('/result', function (req, res) {
   if (!Array.isArray(electResult)) {
     res.json(ErrMsg.PARAMS);
     return;
+  }
+
+  for (let i = 0; i < electResult.length; i++) {
+    if (!electResult[i].name || !electResult[i].workId) {
+      res.json(ErrMsg.PARAMS);
+      return;
+    }
   }
 
   activityService.isActivityCreater(activityId, req.user._id)

@@ -17,11 +17,7 @@ router.post('/activity', function (req, res) {
 });
 
 router.post('/user', function (req, res) {
-  const {keyword} = req.body;
-  if (!keyword) {
-    res.json(ErrMsg.PARAMS);
-    return;
-  }
+  let keyword = req.body.keyword || '';
 
   let page, pageSize;
   try {
@@ -33,14 +29,14 @@ router.post('/user', function (req, res) {
     return;
   }
 
-  Promise.all(
-    User.find({nickname: {$regex: keyword}})
+  Promise.all([
+    User.find({nickname: {$regex: keyword, $options: 'i'}})
       .select('_id nickname avatar identity')
       .skip(page * pageSize)
       .limit(pageSize)
       .exec(),
-    User.count({nickname: {$regex: keyword}}).exec()
-  )
+    User.count({nickname: {$regex: keyword, $options: 'i'}}).exec()
+  ])
     .then(data => {
       res.json({
         code: 0,

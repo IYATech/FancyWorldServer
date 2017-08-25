@@ -96,6 +96,7 @@ router.post('/postList', function (req, res) {
   Post.find({segmentType, segmentId, createTime: action === 'refresh' ? {$gt: timestamp} : {$lt: timestamp}})
     .select('_id createrId segmentType segmentId content images audio commentNum likeNum createTime')
     .limit(pageSize)
+    .sort({createTime: -1})
     .populate({path: 'createrId', select: '_id nickname avatar identity'})
     .then(data => {
       res.json({

@@ -83,12 +83,14 @@ exports.authentication = function (userId, info) {
  */
 exports.sendChatMsg = function (msgObj) {
   return new Promise(function (resolve, reject) {
+    let msg;
     new ChatMsg(msgObj).save()
-      .then(() => {
-        return UserMsg.findOneAndUpdate({userId: msgObj.recvUserId}, {$inc: {chatMsgNum: 1}}).exec()
+      .then((m) => {
+        msg = m;
+        return UserMsg.findOneAndUpdate({userId: msgObj.recvUserId}, {$inc: {chatMsgNum: 1}}).exec();
       })
-      .then(p => {
-        resolve(!!p)
+      .then(() => {
+        resolve(msg)
       })
       .catch(err => reject(err))
   })

@@ -29,7 +29,7 @@ router.post('/get', function (req, res) {
 
   let pageSize, timestamp;
   try {
-    pageSize = Number(req.body.pageSize) || 10;
+    pageSize = Number(req.body.pageSize) || 50;
     timestamp = req.body.timestamp || 0;
   }
   catch (err) {
@@ -37,24 +37,17 @@ router.post('/get', function (req, res) {
     return;
   }
 
-  Promise.all([
-    ChatMsg.find({
-      $or: [
-        {sendUserId: chatUserId, recvUserId: req.user._id},
-        {sendUserId: req.user._id, recvUserId: chatUserId}
-      ],
-      msgCreateTime: action === 'refresh' ? {$gt: timestamp} : {$lt: timestamp}
-    })
-      .select('_id sendUserId recvUserId msgType msgResult msgContent msgContentId msgCreateTime')
-      .limit(pageSize)
-      .exec(),
-    ChatMsg.count({
-      $or: [
-        {sendUserId: chatUserId, recvUserId: req.user._id},
-        {sendUserId: req.user._id, recvUserId: chatUserId}
-      ]
-    }).exec()
-  ])
+  ChatMsg.find({
+    $or: [
+      {sendUserId: chatUserId, recvUserId: req.user._id},
+      {sendUserId: req.user._id, recvUserId: chatUserId}
+    ],
+    msgCreateTime: action === 'refresh' ? {$gt: timestamp} : {$lt: timestamp}
+  })
+    .select('_id sendUserId recvUserId msgType msgResult msgContent msgContentId msgCreateTime')
+    .limit(pageSize)
+    .sort({msgCreateTime: 'desc'})
+    .exec()
     .then(data => {
       res.json({
         code: 0,
@@ -87,7 +80,7 @@ router.post('/send', function (req, res) {
     return;
   }
 
-  if (type !== 'text' || type !== 'photo' || type !== 'audio' || type !== 'video') {
+  if (type !== 'text' && type !== 'photo' && type !== 'audio' && type !== 'video') {
     res.json(ErrMsg.PARAMS);
     return;
   }
@@ -155,9 +148,9 @@ router.post('/handle', function (req, res) {
           msgResult: result
         });
 
-        //如果处理结果为yes，更新信息
+        //如果处理结果为yes，需要对应更新信息
         let handlePromise;
-        if (result === 'ok') {
+        if (result === 'yes') {
           if (p.msgType === 'authentication') {
             //认证信息通过，更新认证人信息
             handlePromise = userService.authentication(p.sendUserId, JSON.parse(p.msgContent));
