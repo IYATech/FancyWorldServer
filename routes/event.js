@@ -158,7 +158,7 @@ router.post('/event', function (req, res) {
         likeNum: 1,
         date: '$createTime',
         user: {
-          id: '$_id',
+          id: '$user._id',
           avatar: 1,
           identity: 1,
           nickname: 1,
@@ -189,6 +189,14 @@ router.post('/event', function (req, res) {
   ])
     .exec()
     .then(data => {
+      for (let i = 0; i < data.length; i++) {
+        for (let j = 0; j < data[i].content.committeeUsers.length; j++) {
+          if (!data[i].content.committeeUsers[j].uid) {
+            data[i].content.committeeUsers.splice(j, 1);
+            break;
+          }
+        }
+      }
       res.json({
         'code': 0,
         'message': 'ok',
