@@ -227,7 +227,6 @@ router.post('/enroll', function (req, res) {
     .then(p => {
       if (!p)
         return;
-
       res.json({
         code: 0,
         message: 'ok',
@@ -248,6 +247,23 @@ router.post('/enroll', function (req, res) {
         userService.addKidInfo(req.user._id, kid)
           .catch(err => console.log(err.message));
       }
+
+      Activity.findOne({_id:activityId},)
+        .then(data => {
+          if (data) {
+            let event = new Event({
+              createrId: req.user.id,
+              eventType: global.EventType.NewsEnroll,
+              activityId: activityId,
+              segmentId: activityId,
+              segmentTitle: data.title,
+              segmentText: data.description,
+              video: data.video,
+              performer: data.performer
+            });
+            return event.save();
+          }
+        })
     })
     .catch(err => {
       res.json(ErrMsg.DB);
