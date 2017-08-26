@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const Activity = require('../models/activity');
-
+const Work = require('../models/work');
 const User = require('../models/user');
 const Event = require('../models/event');
 
@@ -50,6 +50,20 @@ router.post('/event', function (req, res) {
       $unwind: '$activity'
     },
     {
+      $lookup: {
+        from: Work.collection.collectionName,
+        localField: 'workId',
+        foreignField: '_id',
+        as: 'work'
+      }
+    },
+    {
+      $unwind: {
+        path: '$work',
+        preserveNullAndEmptyArrays: true,
+      }
+    },
+    {
       $project: {
         eventType: 1,
         commentNum: 1,
@@ -73,10 +87,10 @@ router.post('/event', function (req, res) {
         video: 1,
         images: 1,
         workId: 1,
-        workTitle: 1,
+        workTitle: '$work.title',
         postId: 1,
         location: 1,
-        param: 1,
+        performer: 1,
       }
     },
     {
@@ -123,7 +137,7 @@ router.post('/event', function (req, res) {
         workTitle: 1,
         postId: 1,
         location: 1,
-        param: 1,
+        performer: 1,
       }
     },
     {
@@ -146,7 +160,7 @@ router.post('/event', function (req, res) {
         workTitle: {$last: '$workTitle'},
         postId: {$last: '$postId'},
         location: {$last: '$location'},
-        param: {$last: '$param'},
+        performer: {$last: '$performer'},
       },
     },
     {
@@ -181,7 +195,7 @@ router.post('/event', function (req, res) {
             lat: '$lat',
             lng: '$lng',
           },
-          performer: '$performer',
+          performer: 1,
         },
       }
     },

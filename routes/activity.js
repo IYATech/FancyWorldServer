@@ -264,6 +264,10 @@ router.post('/enroll', function (req, res) {
             return event.save();
           }
         })
+        .catch(err => {
+          res.json(ErrMsg.DB);
+          console.log(err.message);
+        })
     })
     .catch(err => {
       res.json(ErrMsg.DB);

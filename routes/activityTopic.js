@@ -53,7 +53,7 @@ router.post('/add', function (req, res) {
               activityId: topic.activityId,
               segmentId: segmentId,
               segmentTitle: topic.title,
-              segmentText: signIn.description,
+              segmentText: topic.description,
               images: topic.images,
               audio: topic.audio,
               video: topic.video,

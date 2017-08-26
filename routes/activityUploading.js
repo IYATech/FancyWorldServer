@@ -161,7 +161,18 @@ router.post('/upload', function (req, res) {
               code: 0,
               message: 'ok',
               result: data._id
-            })
+            });
+
+            let event = new Event({
+              createrId: req.user.id,
+              eventType: global.EventType.NewsWorks,
+              activityId: activityId,
+              images: images,
+              audio: audio,
+              video: video,
+              workId: data._id,
+            });
+            event.save();
           })
           .catch(err => {
             res.json(ErrMsg.DB);
