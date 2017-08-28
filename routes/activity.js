@@ -248,7 +248,7 @@ router.post('/enroll', function (req, res) {
           .catch(err => console.log(err.message));
       }
 
-      Activity.findOne({_id:activityId},)
+      Activity.findOne({_id: activityId})
         .then(data => {
           if (data) {
             let event = new Event({
@@ -265,8 +265,7 @@ router.post('/enroll', function (req, res) {
           }
         })
         .catch(err => {
-          res.json(ErrMsg.DB);
-          console.log(err.message);
+          console.log(err.message)
         })
     })
     .catch(err => {

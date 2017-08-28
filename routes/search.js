@@ -29,8 +29,13 @@ router.post('/user', function (req, res) {
     return;
   }
 
+  let condition = {nickname: {$regex: keyword, $options: 'i'}};
+  if (req.user) {
+    condition = Object.assign(condition, {_id: {$ne: req.user._id}});
+  }
+
   Promise.all([
-    User.find({nickname: {$regex: keyword, $options: 'i'}})
+    User.find(condition)
       .select('_id nickname avatar identity')
       .skip(page * pageSize)
       .limit(pageSize)

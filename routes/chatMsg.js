@@ -118,7 +118,7 @@ router.post('/handle', function (req, res) {
     return;
   }
 
-  if (result !== 'yes' || result !== 'no') {
+  if (result !== 'yes' && result !== 'no') {
     res.json(ErrMsg.PARAMS);
     return;
   }
