@@ -78,4 +78,14 @@ global.GetModel = function (name) {
   return models[name];
 };
 
+/*
+  define activity status
+ */
+
+global.ActivityStatus = {
+  save: 'save',
+  ongoing: 'ongoing',
+  end: 'end'
+}
+
 module.exports = global;

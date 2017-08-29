@@ -23,7 +23,8 @@ router.post('/event', function (req, res) {
     return;
   }
 
-  Event.aggregate([
+  let countPromise = Event.count()
+  let findPromise = Event.aggregate([
     {$sort: {createTime: -1}},
     {$skip: page * pageSize},
     {$limit: pageSize},
@@ -201,8 +202,13 @@ router.post('/event', function (req, res) {
     },
     {$sort: {date: -1}},
   ])
-    .exec()
-    .then(data => {
+
+  Promise.all([
+    findPromise.exec(),
+    countPromise.exec()
+  ])
+    .then(dataArr => {
+      let data = dataArr[0]
       for (let i = 0; i < data.length; i++) {
         for (let j = 0; j < data[i].content.committeeUsers.length; j++) {
           if (!data[i].content.committeeUsers[j].uid) {
@@ -215,7 +221,7 @@ router.post('/event', function (req, res) {
         'code': 0,
         'message': 'ok',
         'result': {
-          total: data.length,  //模拟多条数据
+          total: dataArr[1],
           page: page,
           pageSize: data.length,
           data: data

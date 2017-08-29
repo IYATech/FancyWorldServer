@@ -18,10 +18,11 @@ router.post('/add', function (req, res) {
     return;
   }
 
-  if (req.user.identity.length === 0) {
-    res.json(ErrMsg.Identity);
-    return;
-  }
+  // 身份验证
+  // if (req.user.identity.length === 0) {
+  //   res.json(ErrMsg.Identity);
+  //   return;
+  // }
 
   const {
     title, tag, committeeId, sponsor, undertaker,
@@ -43,7 +44,7 @@ router.post('/add', function (req, res) {
     createrId: req.user._id,
     title,
     tag,
-    status: 'save',
+    status: committeeId.length > 0 ? ActivityStatus.save : ActivityStatus.ongoing,  //存在组委会，则活动状态为保存，否则为进行中
     committee,
     description,
     images,
@@ -63,6 +64,23 @@ router.post('/add', function (req, res) {
     .then(data => {
       result = data._id;
 
+      if (data.status === ActivityStatus.ongoing) {
+        //活动正式发布后显示动态
+        let event = new Event({
+          createrId: req.user._id,
+          eventType: global.EventType.NewsTheme,
+          activityId: result,
+          segmentId: result,
+          segmentTitle: activity.title,
+          segmentText: activity.description,
+          audio: activity.audio,
+          video: activity.video,
+          images: activity.images,
+        });
+        event.save()
+          .catch(err => console.log(err.message))
+      }
+
       let msgArr = [];
       for (let i = 0; i < committeeId.length; i++) {
         msgArr.push({
@@ -81,20 +99,6 @@ router.post('/add', function (req, res) {
         // 给组委会成员的消息数加1
         UserMsg.update({userId: {$in: committeeId}}, {$inc: {chatMsgNum: 1}}).exec()
       ])
-    })
-    .then(() => {
-      let event = new Event({
-        createrId: req.user._id,
-        eventType: global.EventType.NewsTheme,
-        activityId: result,
-        segmentId: result,
-        segmentTitle: activity.title,
-        segmentText: activity.description,
-        audio: activity.audio,
-        video: activity.video,
-        images: activity.images,
-      });
-      return event.save();
     })
     .then(() => {
       res.json({
@@ -162,13 +166,13 @@ router.post('/myActivities', function (req, res) {
   }
 
   Promise.all([
-    Activity.find({createrId: req.user._id, status: {$ne: 'end'}})
+    Activity.find({createrId: req.user._id, status: {$ne: ActivityStatus.end}})
       .select('_id title segment createTime endTime status')
       .sort({createTime: 'desc'})
       .skip(pageSize * page)
       .limit(pageSize)
       .exec(),
-    Activity.count({createrId: req.user._id, status: {$ne: 'end'}}).exec()
+    Activity.count({createrId: req.user._id, status: {$ne: ActivityStatus.end}}).exec()
   ])
     .then(data => {
       res.json({
@@ -336,5 +340,75 @@ router.post('/enrollUser', function (req, res) {
     })
 });
 
+router.post('/publish', function (req, res) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {activityId} = req.body;
+  if (!activityId) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  Activity.findOne({_id: activityId})
+    .then(data => {
+      if (!data) {
+        res.json(ErrMsg.NotFound);
+        return;
+      }
+
+      if (!data.createrId.equals(req.user._id)) {
+        res.json(ErrMsg.Permission);
+        return;
+      }
+
+      if (data.status !== 'save') {
+        res.json({
+          code: -1,
+          message: '活动为非保存状态'
+        });
+        return;
+      }
+
+      for (let i = 0; i < data.committee.length; i++) {
+        if (!data.committee[i].isAgree) {
+          res.json({
+            code: -2,
+            message: '组委会中还有未确认的成员'
+          });
+          return;
+        }
+      }
+
+      data.status = ActivityStatus.ongoing;
+      data.save()
+        .then(() => {
+          //活动正式发布后显示动态
+          let event = new Event({
+            createrId: req.user._id,
+            eventType: global.EventType.NewsTheme,
+            activityId: result,
+            segmentId: result,
+            segmentTitle: activity.title,
+            segmentText: activity.description,
+            audio: activity.audio,
+            video: activity.video,
+            images: activity.images,
+          });
+          return event.save();
+        })
+        .catch(err => {
+          res.json(ErrMsg.DB);
+          console.log(err.message);
+        })
+    })
+    .catch(err => {
+      res.json(ErrMsg.DB);
+      console.log(err.message);
+    })
+
+});
 
 module.exports = router;

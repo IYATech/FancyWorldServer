@@ -267,25 +267,18 @@ router.post('/authentication', function (req, res) {
           });
           userService.sendChatMsg(msg)
             .then(r => {
-              // res.json({
-              //   code: 0,
-              //   message: 'ok',
-              //   result: true
-              // })
-
-              //todo 临时代码 直接通过认证
-              req.user.identity.push(identity);
-              req.user.realName = realName;
-              req.user.company = company;
-              req.user.job = job;
-              return req.user.save()
-            })
-            .then(() => {
               res.json({
                 code: 0,
                 message: 'ok',
                 result: true
               })
+
+              // 临时代码 直接通过认证
+              // req.user.identity.push(identity);
+              // req.user.realName = realName;
+              // req.user.company = company;
+              // req.user.job = job;
+              // return req.user.save()
             })
             .catch(err => {
               res.json(ErrMsg.DB);
