@@ -266,7 +266,7 @@ router.post('/authentication', function (req, res) {
             })
           });
           userService.sendChatMsg(msg)
-            .then(r => {
+            .then(() => {
               res.json({
                 code: 0,
                 message: 'ok',
@@ -411,6 +411,27 @@ router.post('/modifyUserInfo', function (req, res) {
       res.json(ErrMsg.DB);
       console.log(err.message);
     })
+});
+
+router.post('/modifyAvatar', function (req, res) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+  const {avatar} = req.body;
+  req.user.avatar = avatar;
+  req.user.save()
+    .then(()=>{
+      res.json({
+        code: 0,
+        message: 'ok',
+        result: true,
+      })
+    })
+    .catch(err => {
+      res.json(ErrMsg.DB);
+      console.log(err.message);
+    });
 });
 
 router.post('/modifyKidInfo', function (req, res) {
