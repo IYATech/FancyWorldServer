@@ -175,16 +175,37 @@ router.post('/myActivities', function (req, res) {
     Activity.count({createrId: req.user._id, status: {$ne: ActivityStatus.end}}).exec()
   ])
     .then(data => {
-      res.json({
-        code: 0,
-        message: 'ok',
-        result: {
-          page,
-          pageSize: data[0].length,
-          total: data[1],
-          data: data[0],
+      let promiseArr = data[0].map(item => {
+        let index = item.segment.length - 1
+        if (index < 0) {
+          item._doc.segmentType = 'theme'
+          item._doc.segmentTitle = item.title
+          return null
         }
-      })
+
+        let s = item.segment[index]
+        item._doc.segmentType = s.segmentType
+        return GetModel(s.segmentType).findOne({_id: s.segmentId}, 'title').exec()
+      });
+
+      Promise.all(promiseArr)
+        .then(sgData => {
+          for (let i = 0; i < sgData.length; i++) {
+            if (sgData[i]) {
+              data[0][i]._doc.segmentTitle = sgData[i].title
+            }
+          }
+          res.json({
+            code: 0,
+            message: 'ok',
+            result: {
+              page,
+              pageSize: data[0].length,
+              total: data[1],
+              data: data[0],
+            }
+          })
+        })
     })
     .catch(err => {
       res.json(ErrMsg.DB);
