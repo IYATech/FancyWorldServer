@@ -23,7 +23,7 @@ router.post('/event', function (req, res) {
     return;
   }
 
-  let countPromise = Event.count()
+  let countPromise = Event.count();
   let findPromise = Event.aggregate([
     {$sort: {createTime: -1}},
     {$skip: page * pageSize},
@@ -201,14 +201,14 @@ router.post('/event', function (req, res) {
       }
     },
     {$sort: {date: -1}},
-  ])
+  ]);
 
   Promise.all([
     findPromise.exec(),
     countPromise.exec()
   ])
     .then(dataArr => {
-      let data = dataArr[0]
+      let data = dataArr[0];
       for (let i = 0; i < data.length; i++) {
         for (let j = 0; j < data[i].content.committeeUsers.length; j++) {
           if (!data[i].content.committeeUsers[j].uid) {
@@ -226,6 +226,39 @@ router.post('/event', function (req, res) {
           pageSize: data.length,
           data: data
         }
+      })
+    })
+    .catch(err => {
+      res.json(ErrMsg.DB);
+      console.log(err.message);
+    })
+});
+
+router.post('/comment', function (req, res) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {eventId, content} = req.body;
+
+  if (!eventId || !content) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  let event = new Event({
+    createrId: req.user._id,
+    eventId: eventId,
+    content: content,
+  });
+
+  event.save()
+    .then(data => {
+      res.json({
+        code: 0,
+        message: 'ok',
+        eventCommentId: data._id,
       })
     })
     .catch(err => {

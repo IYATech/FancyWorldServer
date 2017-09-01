@@ -9,7 +9,8 @@ const Activity = require('../models/activity');
 const ActivityUploading = require('../models/activityUploading');
 const Work = require('../models/work');
 const EnrollInfo = require('../models/enrollInfo');
-const Event = require("../models/event");
+const Event = require('../models/event');
+const WorkComment = require('../models/workComment');
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -235,6 +236,84 @@ router.post('/workList', function (req, res) {
           total: data[1],
           data: data[0]
         }
+      })
+    })
+    .catch(err => {
+      res.json(ErrMsg.DB);
+      console.log(err.message);
+    })
+});
+
+router.post('/getWork', function (req, res) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {workId} = req.body;
+
+  Work.findOne({_id: workId}).exec()
+    .then(data => {
+      if (data) {
+        res.json({
+          code: 0,
+          message: 'ok',
+          result: {
+            userId: data.userId,
+            title: data.title,
+            type: data.workType,
+            performer: data.performer,
+            performerGender: data.performerGender,
+            performerAge: data.performerAge,
+            province: data.province,
+            city: data.city,
+            description: data.description,
+            images: data.images,
+            video: data.video,
+            audio: data.audio,
+            likeNum: data.likeNum,
+            commentNum: data.commentNum,
+            collectionNum: data.collectionNum,
+            createTime: data.createTime
+          }
+        })
+      }
+      else {
+        res.json(ErrMsg.NotFound);
+      }
+    })
+    .catch(err => {
+      res.json(ErrMsg.DB);
+      console.log(err.message);
+    })
+});
+
+router.post('/addWorkComment', function (req, res) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {workId, content, audio} = req.body;
+
+  if (!workId || !content) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  let workComment = new WorkComment({
+    userId: req.user_id,
+    workId: workId,
+    content: content,
+    audio: audio
+  });
+
+  workComment.save()
+    .then((data) => {
+      res.json({
+        code: 0,
+        message: 'ok',
+        result: data._id
       })
     })
     .catch(err => {
