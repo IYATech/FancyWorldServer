@@ -69,13 +69,13 @@ router.post('/add', function (req, res) {
         let event = new Event({
           createrId: req.user._id,
           eventType: global.EventType.NewsTheme,
-          activityId: result,
-          segmentId: result,
-          segmentTitle: activity.title,
-          segmentText: activity.description,
-          audio: activity.audio,
-          video: activity.video,
-          images: activity.images,
+          activityId: data._id,
+          segmentId: data._id,
+          segmentTitle: data.title,
+          segmentText: data.description,
+          audio: data.audio,
+          video: data.video,
+          images: data.images,
         });
         event.save()
           .catch(err => console.log(err.message))
@@ -410,15 +410,22 @@ router.post('/publish', function (req, res) {
           let event = new Event({
             createrId: req.user._id,
             eventType: global.EventType.NewsTheme,
-            activityId: result,
-            segmentId: result,
-            segmentTitle: activity.title,
-            segmentText: activity.description,
-            audio: activity.audio,
-            video: activity.video,
-            images: activity.images,
+            activityId: data._id,
+            segmentId: data._id,
+            segmentTitle: data.title,
+            segmentText: data.description,
+            audio: data.audio,
+            video: data.video,
+            images: data.images,
           });
           return event.save();
+        })
+        .then(() => {
+          res.json({
+            code: 0,
+            message: 'ok',
+            result: true
+          })
         })
         .catch(err => {
           res.json(ErrMsg.DB);
