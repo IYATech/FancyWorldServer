@@ -439,4 +439,99 @@ router.post('/publish', function (req, res) {
 
 });
 
+router.post('/end', function (req, res) {
+  if (!req.user) {
+    res.json(ErrMsg.Token);
+    return;
+  }
+
+  const {activityId} = req.body;
+  if (!activityId) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+
+  Activity.findOne({_id: activityId, createrId: req.user._id}).exec()
+    .then(data => {
+      if (!data) {
+        res.json(ErrMsg.NotFound);
+        return;
+      }
+      else if (data.status !== ActivityStatus.ongoing) {
+        res.json({
+          code: -1,
+          message: '活动不在进行中，无法结束'
+        });
+        return;
+      }
+      else {
+        data.status = ActivityStatus.end;
+        return data.save()
+      }
+    })
+    .then(p => {
+      if (p) {
+        res.json({
+          code: 0,
+          message: 'ok',
+          result: true
+        })
+      }
+    })
+    .catch(err => {
+      console.log(err.message);
+      res.json(ErrMsg.DB)
+    })
+});
+
+router.post('/ongoing', function (req, res) {
+  let uid = req.body.uid || (req.user && req.user._id)
+  if (!uid) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  Activity.find({createrId: uid, status: ActivityStatus.ongoing}, '_id title')
+    .sort({createTime: -1})
+    .exec()
+    .then(data => {
+      res.json({
+        code: 0,
+        message: 'ok',
+        result: {
+          uid,
+          data
+        }
+      })
+    })
+    .catch(err => {
+      res.json(ErrMsg.DB);
+      console.log(err.message);
+    })
+});
+
+router.post('/isEnroll', function (req, res) {
+  const {activityId} = req.body;
+  let uid = req.body.uid || (req.user && req.user._id);
+  if (!activityId || !uid) {
+    res.json(ErrMsg.PARAMS);
+    return;
+  }
+
+  activityService.isEnroll(activityId, uid)
+    .then(result => {
+      res.json({
+        code: 0,
+        message: 'ok',
+        result
+      })
+    })
+    .catch(err => {
+      res.json(ErrMsg.DB);
+      console.log(err.message)
+    })
+
+});
+
 module.exports = router;

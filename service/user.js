@@ -9,6 +9,7 @@ const Kid = require('../models/kid');
 const config = require('../common/config');
 const qiniu = require('qiniu');
 const uuid = require('uuid');
+const VerifyCode = require('../models/verifyCode');
 
 /**
  * token check before router
@@ -121,6 +122,29 @@ exports.addKidInfo = function (userId, kidInfo) {
             })
             .then(() => resolve(true))
             .catch((err) => reject(err))
+        }
+      })
+      .catch(err => reject(err))
+  })
+};
+
+/**
+ * 检测验证码
+ */
+exports.checkVerifyCode = function (phone, code) {
+  return new Promise(function (resolve, reject) {
+    VerifyCode.findOne({phone}).exec()
+      .then(data => {
+        if (data) {
+          if (data.code !== code || data.createTime < Date.now() - (1000 * 60 * 10)) {
+            resolve(false);
+          }
+          else {
+            resolve(true);
+          }
+        }
+        else {
+          resolve(false);
         }
       })
       .catch(err => reject(err))

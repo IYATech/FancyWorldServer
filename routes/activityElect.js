@@ -29,6 +29,9 @@ router.post('/add', function (req, res) {
       if (!data) {
         res.json(ErrMsg.NotFound);
       }
+      else if (data.status !== ActivityStatus.ongoing) {
+        res.json(ErrMsg.NotPublish)
+      }
       else {
         let elect = new ActivityElect({
           createrId: req.user._id,

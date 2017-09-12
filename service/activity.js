@@ -4,6 +4,7 @@
 
 const Activity = require('../models/activity');
 const Post = require('../models/post');
+const EnrollInfo = require('../models/enrollInfo');
 
 /**
  * 用户是否有权查看活动
@@ -117,4 +118,23 @@ exports.commentPost = function (commentInfo) {
       .then((data) => resolve(data[0]))
       .catch(err => reject(err))
   });
+};
+
+/**
+ * 查询用户是否报名
+ * @param activityId
+ * @param userId
+ * @returns {Promise}
+ */
+exports.isEnroll = function (activityId, userId) {
+  return new Promise((resolve, reject) => {
+    EnrollInfo.findOne({enrollUserId: userId, activityId}, '_id')
+      .exec()
+      .then(data => {
+        resolve(!!data);
+      })
+      .catch(err => {
+        reject(err)
+      })
+  })
 };

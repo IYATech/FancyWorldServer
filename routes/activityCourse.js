@@ -26,6 +26,9 @@ router.post('/add', function (req, res) {
       if (!data) {
         res.json(ErrMsg.NotFound);
       }
+      else if (data.status !== ActivityStatus.ongoing) {
+        res.json(ErrMsg.NotPublish)
+      }
       else {
         let course = new ActivityCourse({
           createrId: req.user._id,

@@ -11,6 +11,8 @@ const Work = require('../models/work');
 const EnrollInfo = require('../models/enrollInfo');
 const Event = require('../models/event');
 const WorkComment = require('../models/workComment');
+const User = require('../models/user');
+const mongoose = require('mongoose');
 
 router.post('/add', function (req, res) {
   if (!req.user) {
@@ -29,6 +31,9 @@ router.post('/add', function (req, res) {
     .then(data => {
       if (!data) {
         res.json(ErrMsg.NotFound);
+      }
+      else if (data.status !== ActivityStatus.ongoing) {
+        res.json(ErrMsg.NotPublish)
       }
       else {
         let uploading = new ActivityUploading({
@@ -245,41 +250,83 @@ router.post('/workList', function (req, res) {
 });
 
 router.post('/getWork', function (req, res) {
-  if (!req.user) {
-    res.json(ErrMsg.Token);
-    return;
-  }
-
   const {workId} = req.body;
 
-  Work.findOne({_id: workId}).exec()
+  Work.aggregate(
+    {$match: {_id: mongoose.Types.ObjectId(workId)}},
+    {
+      $lookup: {
+        from: User.collection.collectionName,
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'upUser'
+      }
+    },
+    {
+      $unwind: {
+        path: '$upUser',
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        upUser: {
+          userId: '$upUser._id',
+          nickname: '$upUser.nickname',
+          avatar: '$upUser.avatar',
+          identity: '$upUser.identity',
+        },
+        title: 1,
+        type: 1,
+        performer: 1,
+        performerGender: 1,
+        performerAge: 1,
+        province: 1,
+        city: 1,
+        description: 1,
+        images: 1,
+        video: 1,
+        audio: 1,
+        likeNum: 1,
+        commentNum: 1,
+        collectionNum: 1,
+        createTime: 1
+      }
+    }
+  ).exec()
     .then(data => {
       if (data) {
         res.json({
           code: 0,
           message: 'ok',
           result: {
-            userId: data.userId,
-            title: data.title,
-            type: data.workType,
-            performer: data.performer,
-            performerGender: data.performerGender,
-            performerAge: data.performerAge,
-            province: data.province,
-            city: data.city,
-            description: data.description,
-            images: data.images,
-            video: data.video,
-            audio: data.audio,
-            likeNum: data.likeNum,
-            commentNum: data.commentNum,
-            collectionNum: data.collectionNum,
-            createTime: data.createTime
+            upUser: {
+              userId: data[0].upUser.userId,
+              nickname: data[0].upUser.nickname,
+              avatar: data[0].upUser.avatar,
+              identity: data[0].upUser.identity
+            },
+            title: data[0].title,
+            type: data[0].workType,
+            performer: data[0].performer,
+            performerGender: data[0].performerGender,
+            performerAge: data[0].performerAge,
+            province: data[0].province,
+            city: data[0].city,
+            description: data[0].description,
+            images: data[0].images,
+            video: data[0].video,
+            audio: data[0].audio,
+            likeNum: data[0].likeNum,
+            commentNum: data[0].commentNum,
+            collectionNum: data[0].collectionNum,
+            createTime: data[0].createTime
           }
         })
       }
       else {
-        res.json(ErrMsg.NotFound);
+        res.json(ErrMsg.DB);
       }
     })
     .catch(err => {

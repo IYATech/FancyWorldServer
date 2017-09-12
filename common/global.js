@@ -34,6 +34,10 @@ global.ErrMsg = {
     code: -1007,
     message: '未授权的操作'
   },
+  NotPublish: {
+    code: -1008,
+    message: '活动未发布'
+  }
 };
 
 /*

@@ -4,18 +4,22 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const morgan = require('morgan');
 const app = express();
 const mongoose = require('mongoose');
 const global = require('./common/global');
 
 //connect to mongodb
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://iyatest:iyatest2017@123.56.182.49:27017/test', {
+mongoose.connect('mongodb://username:password@localhost:27017/test', {
   server: {
     reconnectTries: Number.MAX_VALUE,
     socketOptions: {connectTimeoutMS: 10000, socketTimeoutMS: 10000}
   }
 });
+
+// 记录请求日志
+app.use(morgan('tiny'));
 
 // parse `application/x-www-form-urlencoded`
 app.use(bodyParser.urlencoded({extended: true}));

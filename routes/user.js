@@ -11,6 +11,10 @@ const User = require('../models/user');
 const UserMsg = require('../models/userMsg');
 const ChatMsg = require('../models/chatMsg');
 const Kid = require('../models/kid');
+const VerifyCode = require('../models/verifyCode');
+const Http = require('http');
+const QueryString = require('querystring');
+
 
 router.post('/register', function (req, res) {
 
@@ -18,14 +22,6 @@ router.post('/register', function (req, res) {
 
   if (!phone || !password || !nickname || !verifyCode) {
     res.json(ErrMsg.PARAMS);
-    return;
-  }
-
-  if (verifyCode !== '1234') {
-    res.json({
-      code: -1,
-      message: '验证码错误'
-    });
     return;
   }
 
@@ -38,33 +34,49 @@ router.post('/register', function (req, res) {
         });
       }
       else {
-        let user = new User({
-          phone,
-          password,
-          nickname,
-          identity: []
-        });
+        userService.checkVerifyCode(phone, verifyCode)
+          .then(data => {
+            if (data) {
+              let user = new User({
+                phone,
+                password,
+                nickname,
+                identity: []
+              });
 
-        user.save()
-          .then(p => {
-            res.json({
-              code: 0,
-              message: 'ok',
-              result: p._id
-            });
+              user.save()
+                .then(p => {
+                  res.json({
+                    code: 0,
+                    message: 'ok',
+                    result: p._id
+                  });
 
-            let umsg = new UserMsg({
-              userId: p._id
-            });
-            return umsg.save();
-          })
-          .then(() => {
-            res.end();
+                  let umsg = new UserMsg({
+                    userId: p._id
+                  });
+                  return umsg.save();
+                })
+                .then(() => {
+                  res.end();
+                })
+                .catch(err => {
+                  res.json(ErrMsg.DB);
+                  console.log(err.message);
+                })
+            }
+            else {
+              res.json({
+                code: -2,
+                message: '验证码无效'
+              });
+            }
           })
           .catch(err => {
             res.json(ErrMsg.DB);
             console.log(err.message);
           })
+
       }
     })
     .catch(err => {
@@ -169,18 +181,63 @@ router.post('/userInfo', function (req, res) {
 });
 
 router.post('/verifyCode', function (req, res) {
-  // const {phone} = req.body;
+
+  const {phone} = req.body;
 
   //随机一个四位数
-  // let code = Math.round(Math.random() * 10000);
+  let randCode = Math.round(Math.random() * 8999) + 1000;
 
   //todo request send message
+  let data = {
+    account: 'ayamsgid',
+    pswd: 'Qazx1234',
+    mobile: phone,
+    msg: '【凡学】您好，您的验证码是' + randCode + '。有效时间10分钟。',
+  };
 
-  res.json({
-    code: 0,
-    message: 'ok',
-    result: true
-  })
+  let content = QueryString.stringify(data);
+
+  let options = {
+    hostname: '114.55.141.65',
+    port: 80,
+    path: '/msg/HttpSendSM?',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    }
+  };
+
+  let serverRequest = Http.request(options, function (resRequest) {
+    resRequest.setEncoding('utf8');
+    resRequest.on('data', function (chunk) {
+      console.log(('BODY: ' + chunk));
+
+      VerifyCode.findOneAndUpdate(
+        {phone: phone},
+        {code: randCode, createTime: Date.now()},
+        {upsert: true})
+        .then(() => {
+          res.json({
+            code: 0,
+            message: 'ok',
+            result: true
+          })
+        })
+        .catch((err) => {
+          res.json(ErrMsg.DB);
+          console.log(err.message);
+        });
+    });
+  });
+
+  serverRequest.on('error', function (err) {
+    console.log('err:' + err.message);
+  });
+
+  serverRequest.write(content);
+
+  serverRequest.end();
+
 });
 
 router.post('/kidInfo', function (req, res) {
@@ -302,26 +359,34 @@ router.post('/resetPassword', function (req, res) {
     return;
   }
 
-  if (verifyCode !== '1234') {
-    res.json({
-      code: -1,
-      message: '验证码错误'
-    });
-    return;
-  }
-
-  User.update({phone/*,verifyCode*/}, {password}).exec()
-    .then(() => {
-      res.json({
-        code: 0,
-        message: 'ok',
-        result: true
-      })
+  userService.checkVerifyCode(phone, verifyCode)
+    .then(data=>{
+      if (data){
+        User.update({phone/*,verifyCode*/}, {password}).exec()
+          .then(() => {
+            res.json({
+              code: 0,
+              message: 'ok',
+              result: true
+            })
+          })
+          .catch(err => {
+            res.json(ErrMsg.DB);
+            console.log(err.message);
+          })
+      }
+      else {
+        res.json({
+          code: -2,
+          message: '验证码无效'
+        });
+      }
     })
-    .catch(err => {
+    .catch(err=>{
       res.json(ErrMsg.DB);
       console.log(err.message);
     })
+
 });
 
 
@@ -421,7 +486,7 @@ router.post('/modifyAvatar', function (req, res) {
   const {avatar} = req.body;
   req.user.avatar = avatar;
   req.user.save()
-    .then(()=>{
+    .then(() => {
       res.json({
         code: 0,
         message: 'ok',

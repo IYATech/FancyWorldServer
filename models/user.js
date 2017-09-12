@@ -29,7 +29,7 @@ const userSchema = new Schema({
   lat: {type: Number, default: 0},
   lng: {type: Number, default: 0},
   introduction: {type: String, default: ''},
-  kidId: {type: Schema.Types.ObjectId},
+  kidId: {type: Schema.Types.ObjectId, default:null},
   createTime: {type: Date, default: Date.now},
   accessToken: String
 });

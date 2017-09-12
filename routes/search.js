@@ -40,7 +40,7 @@ router.post('/user', function (req, res) {
       .skip(page * pageSize)
       .limit(pageSize)
       .exec(),
-    User.count({nickname: {$regex: keyword, $options: 'i'}}).exec()
+    User.count(condition).exec()
   ])
     .then(data => {
       res.json({
